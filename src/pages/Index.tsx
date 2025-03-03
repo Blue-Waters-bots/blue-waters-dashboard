@@ -1,12 +1,36 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useState } from "react";
+import Header from "@/components/Header";
+import WaterSourceSelector from "@/components/WaterSourceSelector";
+import QualityMetrics from "@/components/QualityMetrics";
+import QualityPredictor from "@/components/QualityPredictor";
+import HealthRisks from "@/components/HealthRisks";
+import HistoricalData from "@/components/HistoricalData";
+import { waterSources, historicalData, qualityPredictions } from "@/data/waterQualityData";
 
 const Index = () => {
+  const [selectedSource, setSelectedSource] = useState(waterSources[0]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen w-full max-w-6xl mx-auto px-4 pb-16">
+      <Header />
+      
+      <WaterSourceSelector 
+        sources={waterSources}
+        selectedSource={selectedSource}
+        onSelectSource={setSelectedSource}
+      />
+      
+      <QualityMetrics metrics={selectedSource.metrics} />
+      
+      <QualityPredictor prediction={qualityPredictions[selectedSource.id]} />
+      
+      <HealthRisks diseases={selectedSource.diseases} />
+      
+      <HistoricalData 
+        historicalData={historicalData}
+        metrics={selectedSource.metrics}
+      />
     </div>
   );
 };
