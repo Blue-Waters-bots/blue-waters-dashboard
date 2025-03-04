@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { MenuIcon, Droplet, Mail, Phone, Globe, X, LayoutDashboard, FlaskConical, ShieldAlert, ChartLine, FileText } from "lucide-react";
+import { MenuIcon, Mail, Phone, Globe, X, LayoutDashboard, FlaskConical, ShieldAlert, ChartLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
 
@@ -47,9 +47,35 @@ const Sidebar = ({ className }: SidebarProps) => {
           isCollapsed ? "w-16" : "w-64"
         )}
       >
-        {/* Sidebar Header */}
+        {/* Sidebar Header with Logo */}
         <div className="p-4 border-b border-white/20 flex items-center gap-3">
-          <Droplet size={isCollapsed ? 28 : 32} className="text-water-blue animate-float" />
+          <div className={cn(
+            "animate-float flex items-center",
+            isCollapsed ? "justify-center w-full" : ""
+          )}>
+            <svg 
+              width={isCollapsed ? 28 : 32} 
+              height={isCollapsed ? 28 : 32} 
+              viewBox="0 0 32 32" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-water-blue"
+            >
+              <path 
+                d="M16 3.2C13.6 8 8 12.8 8 18.4C8 23.2 11.6 27.2 16 27.2C20.4 27.2 24 23.2 24 18.4C24 12.8 18.4 8 16 3.2Z" 
+                fill="currentColor" 
+                fillOpacity="0.6" 
+              />
+              <path 
+                d="M16 3.2C13.6 8 8 12.8 8 18.4C8 23.2 11.6 27.2 16 27.2C20.4 27.2 24 23.2 24 18.4C24 12.8 18.4 8 16 3.2Z" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+              />
+            </svg>
+          </div>
+          
           {!isCollapsed && (
             <div>
               <h1 className="text-2xl font-light tracking-tight bg-gradient-to-r from-blue-500 to-sky-400 bg-clip-text text-transparent">
