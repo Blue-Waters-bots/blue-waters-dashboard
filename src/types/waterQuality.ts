@@ -43,3 +43,13 @@ export interface QualityPrediction {
   description: string;
   improvementSteps: string[];
 }
+
+// Add extra styling properties for the application
+declare module '@/index.css' {
+  interface CSSProperties {
+    '--water-safe': string;
+    '--water-warning': string;
+    '--water-danger': string;
+    '--water-blue': string;
+  }
+}
