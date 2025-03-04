@@ -12,25 +12,30 @@ const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
   return (
-    <div className="min-h-screen w-full max-w-6xl mx-auto px-4 pb-16">
-      <Header />
-      
-      <WaterSourceSelector 
-        sources={waterSources}
-        selectedSource={selectedSource}
-        onSelectSource={setSelectedSource}
-      />
-      
-      <QualityMetrics metrics={selectedSource.metrics} />
-      
-      <QualityPredictor prediction={qualityPredictions[selectedSource.id]} />
-      
-      <HealthRisks diseases={selectedSource.diseases} />
-      
-      <HistoricalData 
-        historicalData={historicalData}
-        metrics={selectedSource.metrics}
-      />
+    <div className="min-h-screen w-full">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <Header />
+        
+        <div className="space-y-8">
+          <WaterSourceSelector 
+            sources={waterSources}
+            selectedSource={selectedSource}
+            onSelectSource={setSelectedSource}
+          />
+          
+          <QualityMetrics metrics={selectedSource.metrics} />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <QualityPredictor prediction={qualityPredictions[selectedSource.id]} />
+            <HealthRisks diseases={selectedSource.diseases} />
+          </div>
+          
+          <HistoricalData 
+            historicalData={historicalData}
+            metrics={selectedSource.metrics}
+          />
+        </div>
+      </div>
     </div>
   );
 };

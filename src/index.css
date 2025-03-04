@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
@@ -90,26 +89,27 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-gradient-to-br from-sky-50 to-blue-50 min-h-screen scroll-smooth;
+    background-attachment: fixed;
     font-family: 'Inter', sans-serif;
   }
 }
 
 .glass-card {
-  @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-glass;
+  @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg;
 }
 
 .glass-panel {
-  @apply bg-white/70 backdrop-blur-md border border-white/30 shadow-subtle;
+  @apply bg-white/80 backdrop-blur-md border border-white/30 shadow-lg hover:shadow-xl transition-shadow duration-300;
 }
 
 .glass-panel-dark {
-  @apply bg-black/10 backdrop-blur-md border border-white/5 shadow-subtle;
+  @apply bg-black/10 backdrop-blur-md border border-white/5 shadow-lg;
 }
 
 .water-ripple {
   position: absolute;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
   border-radius: 50%;
   @apply animate-ripple;
 }
@@ -174,4 +174,3 @@
 .animate-ripple {
   animation: ripple 1.5s ease-out infinite;
 }
-
