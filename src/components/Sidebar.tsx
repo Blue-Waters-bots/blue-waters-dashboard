@@ -1,7 +1,8 @@
 
 import { useState } from "react";
-import { MenuIcon, Droplet, Mail, Phone, Globe, X } from "lucide-react";
+import { MenuIcon, Droplet, Mail, Phone, Globe, X, LayoutDashboard, FlaskConical, ShieldAlert, ChartLine, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link, useLocation } from "react-router-dom";
 
 interface SidebarProps {
   className?: string;
@@ -9,6 +10,34 @@ interface SidebarProps {
 
 const Sidebar = ({ className }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
+  
+  const navigationItems = [
+    { 
+      path: "/", 
+      name: "Dashboard", 
+      icon: <LayoutDashboard size={isCollapsed ? 20 : 18} />, 
+      description: "Water quality metrics overview" 
+    },
+    { 
+      path: "/water-quality-prediction", 
+      name: "Water Quality Prediction", 
+      icon: <FlaskConical size={isCollapsed ? 20 : 18} />, 
+      description: "Future water quality forecasts" 
+    },
+    { 
+      path: "/health-risk-assessment", 
+      name: "Health Risk Assessment", 
+      icon: <ShieldAlert size={isCollapsed ? 20 : 18} />, 
+      description: "Health impacts and risks" 
+    },
+    { 
+      path: "/historical-trends", 
+      name: "Historical Trends", 
+      icon: <ChartLine size={isCollapsed ? 20 : 18} />, 
+      description: "Historical data and reporting" 
+    },
+  ];
 
   return (
     <div className={cn("relative", className)}>
@@ -31,9 +60,45 @@ const Sidebar = ({ className }: SidebarProps) => {
           )}
         </div>
         
-        {/* Sidebar Content */}
-        <div className="flex-1 p-4 overflow-y-auto">
-          {/* You can add more sidebar content here in the future */}
+        {/* Navigation Items */}
+        <div className="flex-1 py-6 overflow-y-auto">
+          <nav className="px-2 space-y-1">
+            {navigationItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "group flex items-center px-2 py-3 rounded-md transition-all duration-200",
+                    isActive 
+                      ? "bg-water-blue/10 text-water-blue" 
+                      : "text-muted-foreground hover:bg-white/60 hover:text-water-blue"
+                  )}
+                >
+                  <div className={cn(
+                    "flex items-center",
+                    isCollapsed ? "justify-center w-full" : "gap-3"
+                  )}>
+                    <span className={cn(
+                      "flex-shrink-0",
+                      isActive ? "text-water-blue" : "text-muted-foreground group-hover:text-water-blue"
+                    )}>
+                      {item.icon}
+                    </span>
+                    
+                    {!isCollapsed && (
+                      <div className="flex flex-col">
+                        <span className="font-medium text-sm">{item.name}</span>
+                        <span className="text-xs text-muted-foreground">{item.description}</span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
         
         {/* Sidebar Footer with Contact Info */}

@@ -1,12 +1,12 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import HistoricalData from "@/components/HistoricalData";
+import { waterSources, historicalData } from "@/data/waterQualityData";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
-import QualityMetrics from "@/components/QualityMetrics";
-import { waterSources } from "@/data/waterQualityData";
 import { FileText } from "lucide-react";
 
-const Index = () => {
+const HistoricalTrends = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
   const handleDownloadReport = () => {
@@ -23,6 +23,17 @@ const Index = () => {
     selectedSource.metrics.forEach(metric => {
       reportContent += `${metric.name}: ${metric.value} ${metric.unit} (Safe Range: ${metric.safeRange[0]}-${metric.safeRange[1]} ${metric.unit})\n`;
       reportContent += `Status: ${metric.status.toUpperCase()}\n\n`;
+    });
+    
+    reportContent += "HISTORICAL DATA:\n";
+    historicalData.forEach(history => {
+      const metric = selectedSource.metrics.find(m => m.id === history.metricId);
+      if (metric) {
+        reportContent += `\n${history.metricName}:\n`;
+        history.data.forEach(point => {
+          reportContent += `${point.date}: ${point.value} ${metric.unit}\n`;
+        });
+      }
     });
     
     // Create a blob and download
@@ -46,10 +57,10 @@ const Index = () => {
           <div className="space-y-8">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-semibold text-gray-800 mb-2">Dashboard</h1>
+                <h1 className="text-3xl font-semibold text-gray-800 mb-2">Historical Trends</h1>
                 <p className="text-muted-foreground max-w-3xl">
-                  Monitor your water quality metrics in real-time. View current conditions 
-                  and take action to ensure water safety.
+                  Analyze historical water quality data to identify trends, patterns, and seasonal variations.
+                  Download detailed reports for compliance and record-keeping.
                 </p>
               </div>
               
@@ -68,7 +79,10 @@ const Index = () => {
               onSelectSource={setSelectedSource}
             />
             
-            <QualityMetrics metrics={selectedSource.metrics} />
+            <HistoricalData 
+              historicalData={historicalData}
+              metrics={selectedSource.metrics}
+            />
           </div>
         </div>
       </div>
@@ -76,4 +90,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default HistoricalTrends;
