@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MenuIcon, Mail, Phone, Globe, X, LayoutDashboard, FlaskConical, ShieldAlert, ChartLine } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,7 +10,7 @@ interface SidebarProps {
 const Sidebar = ({ className }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
-  
+
   const navigationItems = [
     { 
       path: "/", 
@@ -53,27 +52,14 @@ const Sidebar = ({ className }: SidebarProps) => {
             "animate-float flex items-center",
             isCollapsed ? "justify-center w-full" : ""
           )}>
-            <svg 
-              width={isCollapsed ? 28 : 32} 
-              height={isCollapsed ? 28 : 32} 
-              viewBox="0 0 32 32" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
+            {/* Replace the SVG with the logo image */}
+            <img
+              src="/public/logo.jpg" // Update with your actual logo path
+              alt="Blue Waters Logo"
+              width={isCollapsed ? 28 : 45} // Adjust the width based on the collapsed state
+              height={isCollapsed ? 28 : 45} // Adjust the height based on the collapsed state
               className="text-water-blue"
-            >
-              <path 
-                d="M16 3.2C13.6 8 8 12.8 8 18.4C8 23.2 11.6 27.2 16 27.2C20.4 27.2 24 23.2 24 18.4C24 12.8 18.4 8 16 3.2Z" 
-                fill="currentColor" 
-                fillOpacity="0.6" 
-              />
-              <path 
-                d="M16 3.2C13.6 8 8 12.8 8 18.4C8 23.2 11.6 27.2 16 27.2C20.4 27.2 24 23.2 24 18.4C24 12.8 18.4 8 16 3.2Z" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-              />
-            </svg>
+            />
           </div>
           
           {!isCollapsed && (

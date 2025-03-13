@@ -4,9 +4,9 @@ import { WaterSource, HistoricalData, QualityPrediction } from "../types/waterQu
 export const waterSources: WaterSource[] = [
   {
     id: "source1",
-    name: "Clear Lake",
-    location: "Northern Region",
-    type: "Lake",
+    name: "Gaborone Dam",
+    location: "South East",
+    type: "Dam",
     metrics: [
       {
         id: "ph",
@@ -82,8 +82,8 @@ export const waterSources: WaterSource[] = [
   },
   {
     id: "source2",
-    name: "Mountain River",
-    location: "Western Hills",
+    name: "Notwane River",
+    location: "South East",
     type: "River",
     metrics: [
       {
@@ -167,9 +167,9 @@ export const waterSources: WaterSource[] = [
   },
   {
     id: "source3",
-    name: "Community Well",
-    location: "Eastern District",
-    type: "Well",
+    name: "Shashe Dam",
+    location: "Central",
+    type: "Dam",
     metrics: [
       {
         id: "ph",

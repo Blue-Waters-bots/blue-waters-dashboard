@@ -21,7 +21,7 @@ export interface WaterSource {
   id: string;
   name: string;
   location: string;
-  type: 'Lake' | 'River' | 'Well' | 'Reservoir' | 'Treatment Plant';
+  type: 'Lake' | 'River' | 'Well' | 'Reservoir' | 'Treatment Plant'  | 'Dam';
   metrics: WaterQualityMetric[];
   diseases: DiseasePrediction[];
 }
