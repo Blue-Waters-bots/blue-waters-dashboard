@@ -256,7 +256,7 @@ const QualityPredictor = ({ prediction }: QualityPredictorProps) => {
           </div>
         </div>
 
-        <div className="h-[390px] w-full">
+        <div className="h-[195px] w-full">
           <ChartContainer 
             config={{
               quality: {
