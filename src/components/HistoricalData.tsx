@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
 import { 
@@ -20,13 +19,7 @@ declare module "jspdf" {
     lastAutoTable: {
       finalY: number;
     };
-    internal: {
-      pageSize: {
-        getWidth: () => number;
-        getHeight: () => number;
-      };
-      getNumberOfPages: () => number;
-    };
+    internal: any; // Using 'any' type to avoid conflicts with existing definition
   }
 }
 
@@ -170,14 +163,13 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          // Fix type error by explicitly converting to proper type
           fillColor: function(cell) {
             const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          } as unknown as [number, number, number],
-          textColor: [255, 255, 255] // Ensuring text is white for better visibility against colored backgrounds
+          } as any,
+          textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
@@ -217,7 +209,6 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       lastY = doc.lastAutoTable.finalY + 10;
     });
     
-    // Add footer with company info
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -609,3 +600,4 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
 };
 
 export default HistoricalData;
+

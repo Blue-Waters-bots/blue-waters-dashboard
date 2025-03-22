@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import HistoricalData from "@/components/HistoricalData";
@@ -15,13 +14,7 @@ declare module "jspdf" {
     lastAutoTable: {
       finalY: number;
     };
-    internal: {
-      pageSize: {
-        getWidth: () => number;
-        getHeight: () => number;
-      };
-      getNumberOfPages: () => number;
-    };
+    internal: any; // Using 'any' type to avoid conflicts with existing definition
   }
 }
 
@@ -89,14 +82,13 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          // Fix type error by casting to correct type
           fillColor: function(cell) {
             const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          } as unknown as [number, number, number],
-          textColor: [255, 255, 255] // Use white text for better visibility
+          } as any, // Using 'any' to avoid type errors
+          textColor: [255, 255, 255] // White text for better visibility
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }

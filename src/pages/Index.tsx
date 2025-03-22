@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
@@ -17,13 +16,7 @@ declare module "jspdf" {
     lastAutoTable: {
       finalY: number;
     };
-    internal: {
-      pageSize: {
-        getWidth: () => number;
-        getHeight: () => number;
-      };
-      getNumberOfPages: () => number;
-    };
+    internal: any; // Using 'any' type to avoid conflicts with existing definition
   }
 }
 
@@ -117,14 +110,13 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          // Fix type error by casting to correct type
           fillColor: function(cell) {
             const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          } as unknown as [number, number, number],
-          textColor: [255, 255, 255] // Use white text for better visibility
+          } as any,
+          textColor: [255, 255, 255] // White text for better visibility
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
@@ -156,14 +148,13 @@ const Index = () => {
         columnStyles: {
           2: { 
             fontStyle: 'bold',
-            // Fix type error by casting to correct type
             fillColor: function(cell) {
               const risk = cell.raw.toString().toLowerCase();
               if (risk === 'low') return [46, 204, 113];
               if (risk === 'medium') return [241, 196, 15];
               return [231, 76, 60];
-            } as unknown as [number, number, number],
-            textColor: [255, 255, 255] // Use white text for better visibility
+            } as any,
+            textColor: [255, 255, 255] // White text for better visibility
           }
         },
         alternateRowStyles: { fillColor: [240, 240, 240] }
@@ -324,3 +315,4 @@ const Index = () => {
 };
 
 export default Index;
+
