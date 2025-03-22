@@ -8,13 +8,24 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 
-// Add declaration to fix missing type
 declare module "jspdf" {
   interface jsPDF {
     lastAutoTable: {
       finalY: number;
     };
-    internal: any; // Using 'any' type to avoid conflicts with existing definition
+    internal: {
+      events: PubSub;
+      scaleFactor: number;
+      pageSize: { 
+        width: number; 
+        getWidth: () => number; 
+        height: number; 
+        getHeight: () => number; 
+      };
+      pages: number[];
+      getEncryptor(objectId: number): (data: string) => string;
+      getNumberOfPages: () => number;
+    };
   }
 }
 
@@ -22,12 +33,10 @@ const HistoricalTrends = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
   const handleDownloadReport = () => {
-    // Create a new PDF document
     const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
     
-    // Add header with logo and title
-    doc.setFillColor(0, 102, 204); // Header background color
+    doc.setFillColor(0, 102, 204);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     
     doc.setTextColor(255, 255, 255);
@@ -35,7 +44,6 @@ const HistoricalTrends = () => {
     doc.setFontSize(22);
     doc.text("Water Quality Report", 105, 20, { align: "center" });
     
-    // Add company contact information
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
@@ -47,7 +55,6 @@ const HistoricalTrends = () => {
     doc.text(`Location: ${selectedSource.location}`, 14, 66);
     doc.text(`Type: ${selectedSource.type}`, 14, 72);
 
-    // Add contact information
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.text("Blue Group Solutions (Pty) Ltd", 14, 82);
@@ -56,12 +63,10 @@ const HistoricalTrends = () => {
     doc.text("Gaborone, Botswana", 14, 88);
     doc.text("Phone: +267 76953391 | Email: admin@bluegroupbw.com", 14, 94);
     
-    // Add current metrics table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Current Water Quality Metrics", 14, 106);
     
-    // Create table data for current metrics
     const metricsBody = selectedSource.metrics.map(metric => [
       metric.name,
       `${metric.value} ${metric.unit}`,
@@ -87,20 +92,18 @@ const HistoricalTrends = () => {
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          } as any, // Using 'any' to avoid type errors
-          textColor: [255, 255, 255] // White text for better visibility
+          } as [number, number, number],
+          textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    // Add historical data section
     const currentY = doc.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Historical Trends Data", 14, currentY);
     
-    // Create historical data tables for each metric
     let lastY = currentY + 4;
     historicalData.forEach(history => {
       const metric = selectedSource.metrics.find(m => m.id === history.metricId);
@@ -132,7 +135,6 @@ const HistoricalTrends = () => {
       }
     });
     
-    // Add footer with company contact info
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -159,7 +161,6 @@ const HistoricalTrends = () => {
       );
     }
     
-    // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);
     
     toast({

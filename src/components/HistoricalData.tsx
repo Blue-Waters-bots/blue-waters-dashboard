@@ -13,13 +13,24 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 
-// Add declaration to fix missing type
 declare module "jspdf" {
   interface jsPDF {
     lastAutoTable: {
       finalY: number;
     };
-    internal: any; // Using 'any' type to avoid conflicts with existing definition
+    internal: {
+      events: PubSub;
+      scaleFactor: number;
+      pageSize: { 
+        width: number; 
+        getWidth: () => number; 
+        height: number; 
+        getHeight: () => number; 
+      };
+      pages: number[];
+      getEncryptor(objectId: number): (data: string) => string;
+      getNumberOfPages: () => number;
+    };
   }
 }
 
@@ -130,7 +141,6 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     doc.setFontSize(10);
     doc.text(`Generated: ${currentDate}`, 14, 50);
     
-    // Add company contact information
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
     doc.text("Blue Group Solutions (Pty) Ltd", 14, 60);
@@ -168,7 +178,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          } as any,
+          } as [number, number, number],
           textColor: [255, 255, 255]
         }
       },
@@ -600,4 +610,3 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
 };
 
 export default HistoricalData;
-

@@ -10,13 +10,24 @@ import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// Add declaration to fix missing type
 declare module "jspdf" {
   interface jsPDF {
     lastAutoTable: {
       finalY: number;
     };
-    internal: any; // Using 'any' type to avoid conflicts with existing definition
+    internal: {
+      events: PubSub;
+      scaleFactor: number;
+      pageSize: { 
+        width: number; 
+        getWidth: () => number; 
+        height: number; 
+        getHeight: () => number; 
+      };
+      pages: number[];
+      getEncryptor(objectId: number): (data: string) => string;
+      getNumberOfPages: () => number;
+    };
   }
 }
 
@@ -24,12 +35,10 @@ const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
   const handleDownloadReport = () => {
-    // Create a new PDF document
     const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
     
-    // Add header with logo and title
-    doc.setFillColor(0, 102, 204); // Header background color
+    doc.setFillColor(0, 102, 204);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     
     doc.setTextColor(255, 255, 255);
@@ -37,7 +46,6 @@ const Index = () => {
     doc.setFontSize(22);
     doc.text("Water Quality Summary Report", 105, 20, { align: "center" });
     
-    // Add source information
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
@@ -49,16 +57,6 @@ const Index = () => {
     doc.text(`Location: ${selectedSource.location}`, 14, 66);
     doc.text(`Type: ${selectedSource.type}`, 14, 72);
     
-    // Add company contact information
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Blue Group Solutions (Pty) Ltd", 14, 82);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("Gaborone, Botswana", 14, 88);
-    doc.text("Phone: +267 76953391 | Email: admin@bluegroupbw.com", 14, 94);
-    
-    // Get overall status
     const metrics = selectedSource.metrics || [];
     const dangerCount = metrics.filter(m => m.status === "danger").length;
     const warningCount = metrics.filter(m => m.status === "warning").length;
@@ -66,17 +64,15 @@ const Index = () => {
     if (dangerCount > 0) overallStatus = "Critical";
     else if (warningCount > 0) overallStatus = "Warning";
     
-    // Add status summary
     doc.setFontSize(12);
     doc.text(`Overall Quality Status: `, 14, 104);
     
-    // Set status color
     if (overallStatus === "Good") {
-      doc.setTextColor(46, 204, 113); // Green
+      doc.setTextColor(46, 204, 113);
     } else if (overallStatus === "Warning") {
-      doc.setTextColor(241, 196, 15); // Yellow
+      doc.setTextColor(241, 196, 15);
     } else {
-      doc.setTextColor(231, 76, 60); // Red
+      doc.setTextColor(231, 76, 60);
     }
     
     doc.setFont("helvetica", "bold");
@@ -84,12 +80,6 @@ const Index = () => {
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     
-    // Add current metrics table
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 116);
-    
-    // Create table data for current metrics
     const metricsBody = selectedSource.metrics.map(metric => [
       metric.name,
       `${metric.value} ${metric.unit}`,
@@ -115,14 +105,13 @@ const Index = () => {
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          } as any,
-          textColor: [255, 255, 255] // White text for better visibility
+          } as [number, number, number],
+          textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    // Add health risks section if any
     if (selectedSource.diseases && selectedSource.diseases.length > 0) {
       const currentY = doc.lastAutoTable.finalY + 15;
       doc.setFontSize(14);
@@ -153,15 +142,14 @@ const Index = () => {
               if (risk === 'low') return [46, 204, 113];
               if (risk === 'medium') return [241, 196, 15];
               return [231, 76, 60];
-            } as any,
-            textColor: [255, 255, 255] // White text for better visibility
+            } as [number, number, number],
+            textColor: [255, 255, 255]
           }
         },
         alternateRowStyles: { fillColor: [240, 240, 240] }
       });
     }
     
-    // Add footer with company contact info
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -188,7 +176,6 @@ const Index = () => {
       );
     }
     
-    // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);
     
     toast({
@@ -198,7 +185,6 @@ const Index = () => {
     });
   };
 
-  // Calculate overall water quality status
   const getOverallStatus = () => {
     const metrics = selectedSource.metrics || [];
     const dangerCount = metrics.filter(m => m.status === "danger").length;
@@ -219,7 +205,6 @@ const Index = () => {
       <div className="flex-1 overflow-y-auto pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
-            {/* Header Section with Stats */}
             <div className="glass-panel rounded-xl p-6 shadow-lg">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -239,7 +224,6 @@ const Index = () => {
                 </button>
               </div>
               
-              {/* Quick Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3">
@@ -315,4 +299,3 @@ const Index = () => {
 };
 
 export default Index;
-
