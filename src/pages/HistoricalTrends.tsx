@@ -21,14 +21,10 @@ const HistoricalTrends = () => {
     doc.setFillColor(0, 102, 204); // Header background color
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     
-    // Add company name and details
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.text("Water Quality Report", 105, 20, { align: "center" });
-    
-    doc.setFontSize(12);
-    doc.text("Blue Group Solutions (Pty) Ltd", 105, 30, { align: "center" });
     
     // Add source information
     doc.setTextColor(0, 0, 0);
@@ -42,15 +38,10 @@ const HistoricalTrends = () => {
     doc.text(`Location: ${selectedSource.location}`, 14, 66);
     doc.text(`Type: ${selectedSource.type}`, 14, 72);
     
-    // Add company contact information
-    doc.text("Blue Group Solutions (Pty) Ltd", 14, 82);
-    doc.text("Plot 1234, Main Mall, Gaborone, Botswana", 14, 88);
-    doc.text("Phone: +267 76953391 | Email: admin@bluegroupbw.com", 14, 94);
-    
     // Add current metrics table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 104);
+    doc.text("Current Water Quality Metrics", 14, 84);
     
     // Create table data for current metrics
     const metricsBody = selectedSource.metrics.map(metric => [
@@ -61,7 +52,7 @@ const HistoricalTrends = () => {
     ]);
     
     autoTable(doc, {
-      startY: 108,
+      startY: 88,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
       headStyles: { 
@@ -73,12 +64,12 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
-            const status = String(cell.raw).toUpperCase();
+          fillColor: (cell, row) => {
+            const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          } as any,
+          },
           textColor: [255, 255, 255]
         }
       },
@@ -86,13 +77,13 @@ const HistoricalTrends = () => {
     });
     
     // Add historical data section
-    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    const currentY = doc.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Historical Trends Data", 14, finalY);
+    doc.text("Historical Trends Data", 14, currentY);
     
     // Create historical data tables for each metric
-    let lastY = finalY + 4;
+    let lastY = currentY + 4;
     historicalData.forEach(history => {
       const metric = selectedSource.metrics.find(m => m.id === history.metricId);
       if (metric) {
@@ -119,12 +110,12 @@ const HistoricalTrends = () => {
           alternateRowStyles: { fillColor: [240, 240, 240] }
         });
         
-        lastY = (doc as any).lastAutoTable.finalY + 10;
+        lastY = doc.lastAutoTable.finalY + 10;
       }
     });
     
     // Add footer
-    const pageCount = (doc.internal as any).getNumberOfPages();
+    const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
@@ -132,7 +123,7 @@ const HistoricalTrends = () => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'Blue Group Solutions (Pty) Ltd | Water Quality Monitoring System | Confidential Report',
+        'Water Quality Monitoring System | Confidential Report',
         pageSize.getWidth() / 2,
         pageHeight - 10,
         { align: 'center' }
