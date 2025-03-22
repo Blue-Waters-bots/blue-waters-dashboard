@@ -8,40 +8,168 @@ import MapView from "@/components/MapView";
 import { waterSources } from "@/data/waterQualityData";
 import { FileText, Droplet, MapPin } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
   const handleDownloadReport = () => {
-    // Create report content
-    const reportTitle = `Water Quality Report: ${selectedSource.name}`;
+    // Create a new PDF document
+    const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
     
-    let reportContent = `${reportTitle}\n`;
-    reportContent += `Generated: ${dateGenerated}\n\n`;
-    reportContent += `Location: ${selectedSource.location}\n`;
-    reportContent += `Type: ${selectedSource.type}\n\n`;
+    // Add header with logo and title
+    doc.setFillColor(0, 102, 204); // Header background color
+    doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     
-    reportContent += "CURRENT METRICS:\n";
-    selectedSource.metrics.forEach(metric => {
-      reportContent += `${metric.name}: ${metric.value} ${metric.unit} (Safe Range: ${metric.safeRange[0]}-${metric.safeRange[1]} ${metric.unit})\n`;
-      reportContent += `Status: ${metric.status.toUpperCase()}\n\n`;
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("Water Quality Summary Report", 105, 20, { align: "center" });
+    
+    // Add source information
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(selectedSource.name, 14, 50);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Generated: ${dateGenerated}`, 14, 60);
+    doc.text(`Location: ${selectedSource.location}`, 14, 66);
+    doc.text(`Type: ${selectedSource.type}`, 14, 72);
+    
+    // Get overall status
+    const metrics = selectedSource.metrics || [];
+    const dangerCount = metrics.filter(m => m.status === "danger").length;
+    const warningCount = metrics.filter(m => m.status === "warning").length;
+    let overallStatus = "Good";
+    if (dangerCount > 0) overallStatus = "Critical";
+    else if (warningCount > 0) overallStatus = "Warning";
+    
+    // Add status summary
+    doc.setFontSize(12);
+    doc.text(`Overall Quality Status: `, 14, 78);
+    
+    // Set status color
+    if (overallStatus === "Good") {
+      doc.setTextColor(46, 204, 113); // Green
+    } else if (overallStatus === "Warning") {
+      doc.setTextColor(241, 196, 15); // Yellow
+    } else {
+      doc.setTextColor(231, 76, 60); // Red
+    }
+    
+    doc.setFont("helvetica", "bold");
+    doc.text(overallStatus, 64, 78);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    
+    // Add current metrics table
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Current Water Quality Metrics", 14, 90);
+    
+    // Create table data for current metrics
+    const metricsBody = selectedSource.metrics.map(metric => [
+      metric.name,
+      `${metric.value} ${metric.unit}`,
+      `${metric.safeRange[0]}-${metric.safeRange[1]} ${metric.unit}`,
+      metric.status.toUpperCase()
+    ]);
+    
+    autoTable(doc, {
+      startY: 94,
+      head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
+      body: metricsBody,
+      headStyles: { 
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold' 
+      },
+      bodyStyles: { fontSize: 10 },
+      columnStyles: {
+        3: { 
+          fontStyle: 'bold',
+          fillColor: (cell, row) => {
+            const status = cell.raw.toString();
+            if (status === 'SAFE') return [46, 204, 113];
+            if (status === 'WARNING') return [241, 196, 15];
+            return [231, 76, 60];
+          },
+          textColor: [255, 255, 255]
+        }
+      },
+      alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    // Create a blob and download
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Add health risks section if any
+    if (selectedSource.diseases && selectedSource.diseases.length > 0) {
+      const currentY = doc.lastAutoTable.finalY + 15;
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Potential Health Risks", 14, currentY);
+      
+      const diseasesBody = selectedSource.diseases.map(disease => [
+        disease.name,
+        disease.description,
+        disease.riskLevel
+      ]);
+      
+      autoTable(doc, {
+        startY: currentY + 4,
+        head: [['Health Risk', 'Description', 'Risk Level']],
+        body: diseasesBody,
+        headStyles: { 
+          fillColor: [41, 128, 185],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold' 
+        },
+        bodyStyles: { fontSize: 10 },
+        columnStyles: {
+          2: { 
+            fontStyle: 'bold',
+            fillColor: (cell, row) => {
+              const risk = cell.raw.toString().toLowerCase();
+              if (risk === 'low') return [46, 204, 113];
+              if (risk === 'medium') return [241, 196, 15];
+              return [231, 76, 60];
+            },
+            textColor: [255, 255, 255]
+          }
+        },
+        alternateRowStyles: { fillColor: [240, 240, 240] }
+      });
+    }
+    
+    // Add footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      const pageSize = doc.internal.pageSize;
+      const pageHeight = pageSize.getHeight();
+      doc.text(
+        'Water Quality Monitoring System | Confidential Report',
+        pageSize.getWidth() / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        pageSize.getWidth() - 20,
+        pageHeight - 10
+      );
+    }
+    
+    // Save the PDF
+    doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);
     
     toast({
       title: "Report Downloaded",
-      description: `Report for ${selectedSource.name} has been downloaded successfully.`,
+      description: `PDF report for ${selectedSource.name} has been generated successfully.`,
       duration: 3000,
     });
   };

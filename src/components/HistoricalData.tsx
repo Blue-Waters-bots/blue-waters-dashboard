@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
 import { 
@@ -8,15 +7,11 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { Download, BarChart as BarChartIcon, PieChart as PieChartIcon, LineChart as LineChartIcon, 
-  AreaChart as AreaChartIcon, Combine, CircleDot, ArrowRightLeft } from "lucide-react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+  AreaChart as AreaChartIcon, Combine, CircleDot } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { toast } from "@/components/ui/use-toast";
 
 interface HistoricalDataProps {
   historicalData: HistoricalDataType[];
@@ -62,13 +57,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     }
   };
 
-  // Create missing historical data for metrics that don't have it
   const allMetricsData = metrics.map(metric => {
     const existingData = historicalData.find(d => d.metricId === metric.id);
     
     if (existingData) return existingData;
     
-    // Create placeholder data if this metric doesn't have historical data
     return {
       metricId: metric.id,
       metricName: metric.name,
@@ -83,7 +76,6 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     };
   });
 
-  // Function to prepare data for pie chart
   const preparePieData = (data: { date: string; value: number }[]) => {
     return data.map(item => ({
       name: new Date(item.date).toLocaleString('default', { month: 'short' }),
@@ -91,12 +83,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     }));
   };
 
-  // Function to prepare bubble chart data
   const prepareBubbleData = (data: { date: string; value: number }[]) => {
     return data.map((item, index) => ({
       x: index,
       y: item.value,
-      z: Math.max(5, Math.abs(item.value) * 0.5), // Size based on value
+      z: Math.max(5, Math.abs(item.value) * 0.5),
       name: new Date(item.date).toLocaleString('default', { month: 'short' })
     }));
   };
@@ -111,6 +102,122 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       </div>
     );
   }
+
+  const generateReport = (metrics: WaterQualityMetric[], historicalData: HistoricalDataType[]) => {
+    const doc = new jsPDF();
+    const currentDate = new Date().toLocaleDateString();
+    
+    doc.setFillColor(0, 102, 204);
+    doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
+    doc.text("Water Quality Historical Report", 105, 20, { align: "center" });
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Generated: ${currentDate}`, 14, 50);
+    
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Current Water Quality Metrics", 14, 60);
+    
+    const metricsBody = metrics.map(metric => [
+      metric.name,
+      `${metric.value} ${metric.unit}`,
+      `${metric.safeRange[0]}-${metric.safeRange[1]} ${metric.unit}`,
+      metric.status.toUpperCase()
+    ]);
+    
+    autoTable(doc, {
+      startY: 64,
+      head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
+      body: metricsBody,
+      headStyles: { 
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold' 
+      },
+      bodyStyles: { fontSize: 10 },
+      columnStyles: {
+        3: { 
+          fontStyle: 'bold',
+          fillColor: (cell, row) => {
+            const status = cell.raw.toString();
+            if (status === 'SAFE') return [46, 204, 113];
+            if (status === 'WARNING') return [241, 196, 15];
+            return [231, 76, 60];
+          },
+          textColor: [255, 255, 255]
+        }
+      },
+      alternateRowStyles: { fillColor: [240, 240, 240] }
+    });
+    
+    const currentY = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Historical Trends Data", 14, currentY);
+    
+    let lastY = currentY + 4;
+    historicalData.forEach(data => {
+      lastY += 10;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${data.metricName}`, 14, lastY);
+      
+      const historyBody = data.data.map(point => {
+        const date = new Date(point.date);
+        const formattedDate = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+        const metric = metrics.find(m => m.id === data.metricId);
+        return [formattedDate, `${point.value} ${metric?.unit || ''}`];
+      });
+      
+      autoTable(doc, {
+        startY: lastY + 4,
+        head: [['Date', 'Value']],
+        body: historyBody,
+        headStyles: { 
+          fillColor: [41, 128, 185],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold' 
+        },
+        alternateRowStyles: { fillColor: [240, 240, 240] }
+      });
+      
+      lastY = doc.lastAutoTable.finalY + 10;
+    });
+    
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      const pageSize = doc.internal.pageSize;
+      const pageHeight = pageSize.getHeight();
+      doc.text(
+        'Water Quality Monitoring System | Historical Data Report',
+        pageSize.getWidth() / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+      doc.text(
+        `Page ${i} of ${pageCount}`,
+        pageSize.getWidth() - 20,
+        pageHeight - 10
+      );
+    }
+    
+    doc.save(`water_quality_historical_report_${currentDate.replace(/\//g, "-")}.pdf`);
+    
+    toast({
+      title: "Report Downloaded",
+      description: "PDF report with historical data has been generated successfully.",
+      duration: 3000,
+    });
+  };
 
   return (
     <div className="w-full mb-8">
@@ -453,49 +560,6 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       </div>
     </div>
   );
-};
-
-// Function to generate and download water quality report
-const generateReport = (metrics: WaterQualityMetric[], historicalData: HistoricalDataType[]) => {
-  const currentDate = new Date().toLocaleDateString();
-  
-  // Create report content
-  let reportContent = `WATER QUALITY REPORT - ${currentDate}\n\n`;
-  reportContent += "CURRENT WATER QUALITY METRICS:\n";
-  reportContent += "============================\n\n";
-  
-  metrics.forEach(metric => {
-    const status = metric.status === "safe" ? "SAFE" : 
-                  metric.status === "warning" ? "WARNING" : "DANGER";
-    
-    reportContent += `${metric.name}: ${metric.value} ${metric.unit}\n`;
-    reportContent += `Safe Range: ${metric.safeRange[0]} - ${metric.safeRange[1]} ${metric.unit}\n`;
-    reportContent += `Status: ${status}\n\n`;
-  });
-  
-  reportContent += "\nHISTORICAL DATA:\n";
-  reportContent += "===============\n\n";
-  
-  historicalData.forEach(data => {
-    reportContent += `${data.metricName}:\n`;
-    data.data.forEach(point => {
-      const date = new Date(point.date);
-      const formattedDate = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-      reportContent += `  ${formattedDate}: ${point.value}\n`;
-    });
-    reportContent += "\n";
-  });
-  
-  // Create blob and download link
-  const blob = new Blob([reportContent], { type: "text/plain" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `water_quality_report_${currentDate.replace(/\//g, "-")}.txt`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 };
 
 export default HistoricalData;
