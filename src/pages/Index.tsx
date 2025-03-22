@@ -11,13 +11,27 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 
+// Helper function to calculate overall status for a water source
+const calculateOverallStatus = (source) => {
+  if (source.metrics.some(m => m.status === 'danger')) return 'danger';
+  if (source.metrics.some(m => m.status === 'warning')) return 'warning';
+  return 'safe';
+};
+
+// Add last update date to water sources
+const enrichedWaterSources = waterSources.map(source => ({
+  ...source,
+  overallStatus: calculateOverallStatus(source),
+  lastUpdate: new Date().toLocaleDateString()
+}));
+
 const Index = () => {
-  const [selectedSource, setSelectedSource] = useState(waterSources[0]);
-  const [visibleSources, setVisibleSources] = useState(waterSources.slice(0, 4));
+  const [selectedSource, setSelectedSource] = useState(enrichedWaterSources[0]);
+  const [visibleSources, setVisibleSources] = useState(enrichedWaterSources.slice(0, 4));
   const [startIndex, setStartIndex] = useState(0);
 
   const handleScroll = (direction: "left" | "right") => {
-    const maxStartIndex = Math.max(0, waterSources.length - 4);
+    const maxStartIndex = Math.max(0, enrichedWaterSources.length - 4);
     let newIndex: number;
     
     if (direction === "left") {
@@ -27,7 +41,7 @@ const Index = () => {
     }
     
     setStartIndex(newIndex);
-    setVisibleSources(waterSources.slice(newIndex, newIndex + 4));
+    setVisibleSources(enrichedWaterSources.slice(newIndex, newIndex + 4));
   };
 
   const handleDownloadReport = () => {
@@ -91,12 +105,12 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell, data) => {
+          fillColor: function(cell) {
             const status = String(cell.raw).toUpperCase();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          },
+          } as any,
           textColor: [255, 255, 255]
         }
       },
@@ -110,10 +124,10 @@ const Index = () => {
     doc.text("Health Risk Assessment", 14, finalY);
     
     // Create health risks table
-    const healthRiskData = selectedSource.healthRisks.map(risk => [
-      risk.type,
-      risk.level,
-      risk.description
+    const healthRiskData = selectedSource.diseases.map(disease => [
+      disease.name,
+      disease.riskLevel,
+      disease.description
     ]);
     
     autoTable(doc, {
@@ -128,12 +142,12 @@ const Index = () => {
       columnStyles: {
         1: { 
           fontStyle: 'bold',
-          fillColor: (cell, data) => {
+          fillColor: function(cell) {
             const level = String(cell.raw).toLowerCase();
             if (level === 'low') return [46, 204, 113];
-            if (level === 'moderate') return [241, 196, 15];
+            if (level === 'medium') return [241, 196, 15];
             return [231, 76, 60];
-          },
+          } as any,
           textColor: [255, 255, 255]
         }
       }
@@ -208,7 +222,7 @@ const Index = () => {
               
               <button
                 onClick={() => handleScroll("right")}
-                disabled={startIndex >= waterSources.length - 4}
+                disabled={startIndex >= enrichedWaterSources.length - 4}
                 className="p-2 rounded-full bg-white shadow-md disabled:opacity-50"
               >
                 <ChevronRight size={20} />
@@ -251,12 +265,14 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <MapView selectedSource={selectedSource} />
+            <div>
+              <MapView />
+            </div>
             <QualityMetrics metrics={selectedSource.metrics} />
           </div>
           
           <div className="mt-6">
-            <HealthRisks risks={selectedSource.healthRisks} />
+            <HealthRisks diseases={selectedSource.diseases} />
           </div>
         </div>
       </div>

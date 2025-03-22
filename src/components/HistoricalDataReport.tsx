@@ -2,15 +2,15 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
-import { WaterSourceMetric, HistoricalMetricData } from "@/types/waterQuality";
+import { WaterQualityMetric, HistoricalData } from "@/types/waterQuality";
 
 interface HistoricalDataReportProps {
   sourceId: string;
   sourceName: string;
   sourceType: string;
   sourceLocation: string;
-  metrics: WaterSourceMetric[];
-  historicalData: HistoricalMetricData[];
+  metrics: WaterQualityMetric[];
+  historicalData: HistoricalData[];
 }
 
 export const generateHistoricalDataReport = ({
@@ -81,12 +81,12 @@ export const generateHistoricalDataReport = ({
     columnStyles: {
       3: {
         fontStyle: 'bold',
-        fillColor: (cell, data) => {
+        fillColor: function(cell) {
           const status = String(cell.raw).toUpperCase();
           if (status === 'SAFE') return [46, 204, 113];
           if (status === 'WARNING') return [241, 196, 15];
           return [231, 76, 60];
-        },
+        } as any,
         textColor: [255, 255, 255]
       }
     },

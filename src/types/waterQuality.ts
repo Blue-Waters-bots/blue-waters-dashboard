@@ -24,6 +24,8 @@ export interface WaterSource {
   type: 'Lake' | 'River' | 'Well' | 'Reservoir' | 'Treatment Plant'  | 'Dam';
   metrics: WaterQualityMetric[];
   diseases: DiseasePrediction[];
+  overallStatus?: 'safe' | 'warning' | 'danger';
+  lastUpdate?: string;
 }
 
 export interface HistoricalDataPoint {
@@ -35,6 +37,14 @@ export interface HistoricalData {
   metricId: string;
   metricName: string;
   data: HistoricalDataPoint[];
+}
+
+export interface HistoricalMetricData extends HistoricalData {
+  // Same as HistoricalData but with a different name for clarity
+}
+
+export interface WaterSourceMetric extends WaterQualityMetric {
+  // Same as WaterQualityMetric but with a different name for clarity
 }
 
 export interface QualityPrediction {
