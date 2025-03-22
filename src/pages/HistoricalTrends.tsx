@@ -9,7 +9,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 import { 
-  getStatusColor, 
+  getStatusColorForCell, 
   addPdfFooter, 
   createMetricsTableData, 
   castDocToPDFWithAutoTable 
@@ -65,10 +65,7 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
-            const status = cell.raw.toString();
-            return getStatusColor(status);
-          },
+          fillColor: getStatusColorForCell,
           textColor: [255, 255, 255] // White text for good contrast
         }
       },

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
@@ -11,10 +10,11 @@ import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
-  getStatusColor, 
+  getStatusColorForCell, 
   addPdfFooter, 
   createMetricsTableData,
-  castDocToPDFWithAutoTable 
+  castDocToPDFWithAutoTable,
+  getStatusColor
 } from "@/utils/pdfUtils";
 
 const Index = () => {
@@ -93,10 +93,7 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
-            const status = cell.raw.toString();
-            return getStatusColor(status);
-          },
+          fillColor: getStatusColorForCell,
           textColor: [255, 255, 255] // White text for visibility
         }
       },
@@ -133,7 +130,7 @@ const Index = () => {
           2: { 
             fontStyle: 'bold',
             fillColor: function(cell) {
-              const risk = cell.raw.toString().toLowerCase();
+              const risk = cell.raw?.toString().toLowerCase() || '';
               if (risk === 'low') return [46, 204, 113];
               if (risk === 'medium') return [241, 196, 15];
               return [231, 76, 60];
@@ -275,3 +272,4 @@ const Index = () => {
 };
 
 export default Index;
+

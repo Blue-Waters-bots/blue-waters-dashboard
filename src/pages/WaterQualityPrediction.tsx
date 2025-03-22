@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import QualityPredictor from "@/components/QualityPredictor";
@@ -9,8 +8,9 @@ import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { 
-  getStatusColor, 
+  getStatusColorForCell, 
   getScoreColor, 
+  getScoreColorForCell,
   addPdfFooter, 
   createMetricsTableData,
   castDocToPDFWithAutoTable 
@@ -163,7 +163,7 @@ const WaterQualityPrediction = () => {
         2: { 
           fontStyle: 'bold',
           fillColor: function(cell, row) {
-            const score = parseFloat(row.cells[1].raw as string);
+            const score = parseFloat(row.cells?.[1]?.raw?.toString() || "0");
             return getScoreColor(score);
           },
           textColor: [255, 255, 255] // White text for visibility
@@ -194,10 +194,7 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
-            const status = cell.raw.toString();
-            return getStatusColor(status);
-          },
+          fillColor: getStatusColorForCell,
           textColor: [255, 255, 255] // White text for visibility
         }
       },

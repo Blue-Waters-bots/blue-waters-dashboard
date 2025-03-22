@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
 import { 
@@ -14,7 +13,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 import { 
-  getStatusColor, 
+  getStatusColorForCell, 
   addPdfFooter, 
   createMetricsTableData,
   castDocToPDFWithAutoTable 
@@ -146,10 +145,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
-            const status = cell.raw.toString();
-            return getStatusColor(status);
-          },
+          fillColor: getStatusColorForCell,
           textColor: [255, 255, 255] // White text for status column
         }
       },
@@ -257,7 +253,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         {selectedData && (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              {chartType === 'line' && (
+              {chartType === 'line' ? (
                 <LineChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -296,9 +292,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
-              )}
-
-              {chartType === 'bar' && (
+              ) : chartType === 'bar' ? (
                 <BarChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -334,9 +328,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              )}
-
-              {chartType === 'area' && (
+              ) : chartType === 'area' ? (
                 <AreaChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -374,9 +366,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fillOpacity={0.3}
                   />
                 </AreaChart>
-              )}
-
-              {chartType === 'pie' && (
+              ) : chartType === 'pie' ? (
                 <PieChart>
                   <Pie
                     data={preparePieData(selectedData.data)}
@@ -400,9 +390,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     ]}
                   />
                 </PieChart>
-              )}
-
-              {chartType === 'scatter' && (
+              ) : chartType === 'scatter' ? (
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -438,9 +426,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fill={getLineColor(selectedMetric)}
                   />
                 </ScatterChart>
-              )}
-
-              {chartType === 'bubble' && (
+              ) : chartType === 'bubble' ? (
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -482,9 +468,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fill={getLineColor(selectedMetric)}
                   />
                 </ScatterChart>
-              )}
-
-              {chartType === 'composed' && (
+              ) : (
                 <ComposedChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
