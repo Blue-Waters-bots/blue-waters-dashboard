@@ -251,7 +251,7 @@ const Index = () => {
                           : "bg-red-100 text-red-700"
                       }`}
                     >
-                      {source.overallStatus.toUpperCase()}
+                      {source.overallStatus?.toUpperCase()}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">{source.location}</p>
@@ -266,7 +266,7 @@ const Index = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <MapView />
+              <MapView source={selectedSource} />
             </div>
             <QualityMetrics metrics={selectedSource.metrics} />
           </div>

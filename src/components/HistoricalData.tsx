@@ -276,8 +276,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         
         {selectedData && (
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              {chartType === 'line' && (
+            {/* Wrap the chart selection in individual fragments */}
+            {chartType === 'line' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -316,9 +317,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'bar' && (
+            {chartType === 'bar' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -354,9 +357,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'area' && (
+            {chartType === 'area' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -394,9 +399,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fillOpacity={0.3}
                   />
                 </AreaChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'pie' && (
+            {chartType === 'pie' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={preparePieData(selectedData.data)}
@@ -420,9 +427,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     ]}
                   />
                 </PieChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'scatter' && (
+            {chartType === 'scatter' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -458,9 +467,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fill={getLineColor(selectedMetric)}
                   />
                 </ScatterChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'bubble' && (
+            {chartType === 'bubble' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -502,9 +513,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fill={getLineColor(selectedMetric)}
                   />
                 </ScatterChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'composed' && (
+            {chartType === 'composed' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -538,8 +551,8 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                   <Bar dataKey="value" fill={COLORS[1]} name="Monthly Value" barSize={20} />
                   <Line type="monotone" dataKey="value" stroke={COLORS[0]} name="Trend" />
                 </ComposedChart>
-              )}
-            </ResponsiveContainer>
+              </ResponsiveContainer>
+            )}
           </div>
         )}
         
