@@ -1,18 +1,34 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Sidebar from "@/components/Sidebar";
-import WaterSourceSelector from "@/components/WaterSourceSelector";
+import { waterSources } from "@/data/waterQualityData";
+import MapView from "@/components/MapView";
 import QualityMetrics from "@/components/QualityMetrics";
 import HealthRisks from "@/components/HealthRisks";
-import MapView from "@/components/MapView";
-import { waterSources } from "@/data/waterQualityData";
-import { FileText, Droplet, MapPin } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import Header from "@/components/Header";
+import { Calendar, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { toast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
+  const [visibleSources, setVisibleSources] = useState(waterSources.slice(0, 4));
+  const [startIndex, setStartIndex] = useState(0);
+
+  const handleScroll = (direction: "left" | "right") => {
+    const maxStartIndex = Math.max(0, waterSources.length - 4);
+    let newIndex: number;
+    
+    if (direction === "left") {
+      newIndex = Math.max(0, startIndex - 1);
+    } else {
+      newIndex = Math.min(maxStartIndex, startIndex + 1);
+    }
+    
+    setStartIndex(newIndex);
+    setVisibleSources(waterSources.slice(newIndex, newIndex + 4));
+  };
 
   const handleDownloadReport = () => {
     // Create a new PDF document
@@ -23,13 +39,14 @@ const Index = () => {
     doc.setFillColor(0, 102, 204); // Header background color
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     
+    // Add company name and title
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.text("Water Quality Summary Report", 105, 20, { align: "center" });
+    doc.text("Water Quality Report", 105, 20, { align: "center" });
     
     doc.setFontSize(12);
-    doc.text("AquaPure Solutions, Inc.", 105, 30, { align: "center" });
+    doc.text("Blue Group Solutions (Pty) Ltd", 105, 30, { align: "center" });
     
     // Add source information
     doc.setTextColor(0, 0, 0);
@@ -44,40 +61,14 @@ const Index = () => {
     doc.text(`Type: ${selectedSource.type}`, 14, 72);
     
     // Add company contact information
-    doc.text("AquaPure Solutions, Inc.", 14, 82);
-    doc.text("123 Water Quality Avenue, Hydrocity, HY 12345", 14, 88);
-    doc.text("Phone: (555) 123-4567 | Email: info@aquapure-solutions.com", 14, 94);
-    
-    // Get overall status
-    const metrics = selectedSource.metrics || [];
-    const dangerCount = metrics.filter(m => m.status === "danger").length;
-    const warningCount = metrics.filter(m => m.status === "warning").length;
-    let overallStatus = "Good";
-    if (dangerCount > 0) overallStatus = "Critical";
-    else if (warningCount > 0) overallStatus = "Warning";
-    
-    // Add status summary
-    doc.setFontSize(12);
-    doc.text(`Overall Quality Status: `, 14, 104);
-    
-    // Set status color
-    if (overallStatus === "Good") {
-      doc.setTextColor(46, 204, 113); // Green
-    } else if (overallStatus === "Warning") {
-      doc.setTextColor(241, 196, 15); // Yellow
-    } else {
-      doc.setTextColor(231, 76, 60); // Red
-    }
-    
-    doc.setFont("helvetica", "bold");
-    doc.text(overallStatus, 64, 104);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "normal");
+    doc.text("Blue Group Solutions (Pty) Ltd", 14, 82);
+    doc.text("Plot 1234, Main Mall, Gaborone, Botswana", 14, 88);
+    doc.text("Phone: +267 76953391 | Email: admin@bluegroupbw.com", 14, 94);
     
     // Add current metrics table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 114);
+    doc.text("Current Water Quality Metrics", 14, 104);
     
     // Create table data for current metrics
     const metricsBody = selectedSource.metrics.map(metric => [
@@ -88,7 +79,7 @@ const Index = () => {
     ]);
     
     autoTable(doc, {
-      startY: 118,
+      startY: 108,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
       headStyles: { 
@@ -100,8 +91,8 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
-            const status = cell.raw.toString();
+          fillColor: (cell, data) => {
+            const status = String(cell.raw).toUpperCase();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
@@ -112,44 +103,41 @@ const Index = () => {
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    // Add health risks section if any
-    if (selectedSource.diseases && selectedSource.diseases.length > 0) {
-      const finalY = (doc as any).lastAutoTable.finalY + 15;
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("Potential Health Risks", 14, finalY);
-      
-      const diseasesBody = selectedSource.diseases.map(disease => [
-        disease.name,
-        disease.description,
-        disease.riskLevel
-      ]);
-      
-      autoTable(doc, {
-        startY: finalY + 4,
-        head: [['Health Risk', 'Description', 'Risk Level']],
-        body: diseasesBody,
-        headStyles: { 
-          fillColor: [41, 128, 185],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold' 
-        },
-        bodyStyles: { fontSize: 10 },
-        columnStyles: {
-          2: { 
-            fontStyle: 'bold',
-            fillColor: function(cell) {
-              const risk = cell.raw.toString().toLowerCase();
-              if (risk === 'low') return [46, 204, 113];
-              if (risk === 'medium') return [241, 196, 15];
-              return [231, 76, 60];
-            },
-            textColor: [255, 255, 255]
-          }
-        },
-        alternateRowStyles: { fillColor: [240, 240, 240] }
-      });
-    }
+    // Add health risks section
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Health Risk Assessment", 14, finalY);
+    
+    // Create health risks table
+    const healthRiskData = selectedSource.healthRisks.map(risk => [
+      risk.type,
+      risk.level,
+      risk.description
+    ]);
+    
+    autoTable(doc, {
+      startY: finalY + 4,
+      head: [['Risk Type', 'Risk Level', 'Description']],
+      body: healthRiskData,
+      headStyles: { 
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold' 
+      },
+      columnStyles: {
+        1: { 
+          fontStyle: 'bold',
+          fillColor: (cell, data) => {
+            const level = String(cell.raw).toLowerCase();
+            if (level === 'low') return [46, 204, 113];
+            if (level === 'moderate') return [241, 196, 15];
+            return [231, 76, 60];
+          },
+          textColor: [255, 255, 255]
+        }
+      }
+    });
     
     // Add footer
     const pageCount = (doc.internal as any).getNumberOfPages();
@@ -160,7 +148,7 @@ const Index = () => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'AquaPure Solutions, Inc. | Water Quality Monitoring System | Confidential Report',
+        'Blue Group Solutions (Pty) Ltd | Water Quality Monitoring System | Confidential Report',
         pageSize.getWidth() / 2,
         pageHeight - 10,
         { align: 'center' }
@@ -182,115 +170,93 @@ const Index = () => {
     });
   };
 
-  // Calculate overall water quality status
-  const getOverallStatus = () => {
-    const metrics = selectedSource.metrics || [];
-    const dangerCount = metrics.filter(m => m.status === "danger").length;
-    const warningCount = metrics.filter(m => m.status === "warning").length;
-    const safeCount = metrics.filter(m => m.status === "safe").length;
-    
-    if (dangerCount > 0) return { status: "Critical", color: "text-water-danger" };
-    if (warningCount > 0) return { status: "Warning", color: "text-water-warning" };
-    return { status: "Good", color: "text-water-safe" };
-  };
-
-  const { status, color } = getOverallStatus();
-
   return (
     <div className="min-h-screen w-full flex">
       <Sidebar />
       
-      <div className="flex-1 overflow-y-auto pb-10">
+      <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-8">
-            {/* Header Section with Stats */}
-            <div className="glass-panel rounded-xl p-6 shadow-lg">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h1 className="text-3xl font-semibold text-gray-800 mb-2">Water Quality Dashboard</h1>
-                  <p className="text-muted-foreground max-w-3xl">
-                    Monitor your water quality metrics in real-time. View current conditions 
-                    and take action to ensure water safety.
-                  </p>
-                </div>
-                
-                <button
-                  onClick={handleDownloadReport}
-                  className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
+          <div className="flex items-center justify-between">
+            <Header />
+            
+            <button
+              onClick={handleDownloadReport}
+              className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
+            >
+              <FileText size={16} />
+              <span>Download Report</span>
+            </button>
+          </div>
+          
+          {/* Water Source Cards */}
+          <div className="relative my-8">
+            <div className="flex items-center space-x-4 mb-4">
+              <button
+                onClick={() => handleScroll("left")}
+                disabled={startIndex === 0}
+                className="p-2 rounded-full bg-white shadow-md disabled:opacity-50"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              
+              <div className="flex-1">
+                <h2 className="text-xl font-medium text-gray-800">Water Sources</h2>
+                <p className="text-muted-foreground text-sm">
+                  Select a water source to view detailed quality metrics
+                </p>
+              </div>
+              
+              <button
+                onClick={() => handleScroll("right")}
+                disabled={startIndex >= waterSources.length - 4}
+                className="p-2 rounded-full bg-white shadow-md disabled:opacity-50"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+            
+            <div className="flex space-x-4 overflow-x-hidden">
+              {visibleSources.map((source) => (
+                <div
+                  key={source.id}
+                  className={`flex-1 min-w-[200px] glass-panel rounded-xl p-4 cursor-pointer transition-all duration-200 ${
+                    selectedSource.id === source.id
+                      ? "ring-2 ring-water-blue"
+                      : "hover:translate-y-[-4px]"
+                  }`}
+                  onClick={() => setSelectedSource(source)}
                 >
-                  <FileText size={16} />
-                  <span>Download Report</span>
-                </button>
-              </div>
-              
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full ${color} bg-opacity-10`}>
-                      <Droplet className={color} />
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">Overall Quality</p>
-                      <p className={`text-lg font-semibold ${color}`}>{status}</p>
-                    </div>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium text-gray-800">{source.name}</h3>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                        source.overallStatus === "safe"
+                          ? "bg-green-100 text-green-700"
+                          : source.overallStatus === "warning"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {source.overallStatus.toUpperCase()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">{source.location}</p>
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Calendar size={14} className="mr-1" />
+                    Last update: {source.lastUpdate}
                   </div>
                 </div>
-                
-                <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full text-water-blue bg-water-blue/10">
-                      <Droplet className="text-water-blue" />
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">Source Type</p>
-                      <p className="text-lg font-semibold">{selectedSource.type}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full text-water-blue bg-water-blue/10">
-                      <MapPin className="text-water-blue" />
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">Location</p>
-                      <p className="text-lg font-semibold">{selectedSource.location}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full text-water-blue bg-water-blue/10">
-                      <Droplet className="text-water-blue" />
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">Metrics Tracked</p>
-                      <p className="text-lg font-semibold">{selectedSource.metrics.length}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <WaterSourceSelector 
-                sources={waterSources}
-                selectedSource={selectedSource}
-                onSelectSource={setSelectedSource}
-              />
-              
-              <div className="glass-panel p-6 rounded-xl shadow-md">
-                <h2 className="text-lg font-medium mb-4">Location Map</h2>
-                <MapView source={selectedSource} />
-              </div>
-            </div>
-            
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <MapView selectedSource={selectedSource} />
             <QualityMetrics metrics={selectedSource.metrics} />
-            
-            <HealthRisks diseases={selectedSource.diseases} />
+          </div>
+          
+          <div className="mt-6">
+            <HealthRisks risks={selectedSource.healthRisks} />
           </div>
         </div>
       </div>

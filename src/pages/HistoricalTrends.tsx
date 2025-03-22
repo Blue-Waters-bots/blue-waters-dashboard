@@ -28,7 +28,7 @@ const HistoricalTrends = () => {
     doc.text("Water Quality Report", 105, 20, { align: "center" });
     
     doc.setFontSize(12);
-    doc.text("AquaPure Solutions, Inc.", 105, 30, { align: "center" });
+    doc.text("Blue Group Solutions (Pty) Ltd", 105, 30, { align: "center" });
     
     // Add source information
     doc.setTextColor(0, 0, 0);
@@ -43,9 +43,9 @@ const HistoricalTrends = () => {
     doc.text(`Type: ${selectedSource.type}`, 14, 72);
     
     // Add company contact information
-    doc.text("AquaPure Solutions, Inc.", 14, 82);
-    doc.text("123 Water Quality Avenue, Hydrocity, HY 12345", 14, 88);
-    doc.text("Phone: (555) 123-4567 | Email: info@aquapure-solutions.com", 14, 94);
+    doc.text("Blue Group Solutions (Pty) Ltd", 14, 82);
+    doc.text("Plot 1234, Main Mall, Gaborone, Botswana", 14, 88);
+    doc.text("Phone: +267 76953391 | Email: admin@bluegroupbw.com", 14, 94);
     
     // Add current metrics table
     doc.setFontSize(14);
@@ -73,8 +73,8 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
-            const status = cell.raw.toString();
+          fillColor: (cell, data) => {
+            const status = String(cell.raw).toUpperCase();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
@@ -132,7 +132,7 @@ const HistoricalTrends = () => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'AquaPure Solutions, Inc. | Water Quality Monitoring System | Confidential Report',
+        'Blue Group Solutions (Pty) Ltd | Water Quality Monitoring System | Confidential Report',
         pageSize.getWidth() / 2,
         pageHeight - 10,
         { align: 'center' }
