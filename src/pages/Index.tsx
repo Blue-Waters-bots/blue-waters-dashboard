@@ -28,6 +28,9 @@ const Index = () => {
     doc.setFontSize(22);
     doc.text("Water Quality Summary Report", 105, 20, { align: "center" });
     
+    doc.setFontSize(12);
+    doc.text("AquaPure Solutions, Inc.", 105, 30, { align: "center" });
+    
     // Add source information
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
@@ -40,6 +43,11 @@ const Index = () => {
     doc.text(`Location: ${selectedSource.location}`, 14, 66);
     doc.text(`Type: ${selectedSource.type}`, 14, 72);
     
+    // Add company contact information
+    doc.text("AquaPure Solutions, Inc.", 14, 82);
+    doc.text("123 Water Quality Avenue, Hydrocity, HY 12345", 14, 88);
+    doc.text("Phone: (555) 123-4567 | Email: info@aquapure-solutions.com", 14, 94);
+    
     // Get overall status
     const metrics = selectedSource.metrics || [];
     const dangerCount = metrics.filter(m => m.status === "danger").length;
@@ -50,7 +58,7 @@ const Index = () => {
     
     // Add status summary
     doc.setFontSize(12);
-    doc.text(`Overall Quality Status: `, 14, 78);
+    doc.text(`Overall Quality Status: `, 14, 104);
     
     // Set status color
     if (overallStatus === "Good") {
@@ -62,14 +70,14 @@ const Index = () => {
     }
     
     doc.setFont("helvetica", "bold");
-    doc.text(overallStatus, 64, 78);
+    doc.text(overallStatus, 64, 104);
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     
     // Add current metrics table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 90);
+    doc.text("Current Water Quality Metrics", 14, 114);
     
     // Create table data for current metrics
     const metricsBody = selectedSource.metrics.map(metric => [
@@ -80,7 +88,7 @@ const Index = () => {
     ]);
     
     autoTable(doc, {
-      startY: 94,
+      startY: 118,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
       headStyles: { 
@@ -92,7 +100,7 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell, row) => {
+          fillColor: function(cell) {
             const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
@@ -106,10 +114,10 @@ const Index = () => {
     
     // Add health risks section if any
     if (selectedSource.diseases && selectedSource.diseases.length > 0) {
-      const currentY = doc.lastAutoTable.finalY + 15;
+      const finalY = (doc as any).lastAutoTable.finalY + 15;
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
-      doc.text("Potential Health Risks", 14, currentY);
+      doc.text("Potential Health Risks", 14, finalY);
       
       const diseasesBody = selectedSource.diseases.map(disease => [
         disease.name,
@@ -118,7 +126,7 @@ const Index = () => {
       ]);
       
       autoTable(doc, {
-        startY: currentY + 4,
+        startY: finalY + 4,
         head: [['Health Risk', 'Description', 'Risk Level']],
         body: diseasesBody,
         headStyles: { 
@@ -130,7 +138,7 @@ const Index = () => {
         columnStyles: {
           2: { 
             fontStyle: 'bold',
-            fillColor: (cell, row) => {
+            fillColor: function(cell) {
               const risk = cell.raw.toString().toLowerCase();
               if (risk === 'low') return [46, 204, 113];
               if (risk === 'medium') return [241, 196, 15];
@@ -144,7 +152,7 @@ const Index = () => {
     }
     
     // Add footer
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = (doc.internal as any).getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
@@ -152,7 +160,7 @@ const Index = () => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'Water Quality Monitoring System | Confidential Report',
+        'AquaPure Solutions, Inc. | Water Quality Monitoring System | Confidential Report',
         pageSize.getWidth() / 2,
         pageHeight - 10,
         { align: 'center' }

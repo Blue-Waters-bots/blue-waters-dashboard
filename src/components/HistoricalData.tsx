@@ -115,14 +115,21 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     doc.setFontSize(22);
     doc.text("Water Quality Historical Report", 105, 20, { align: "center" });
     
+    doc.setFontSize(12);
+    doc.text("AquaPure Solutions, Inc.", 105, 30, { align: "center" });
+    
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(`Generated: ${currentDate}`, 14, 50);
     
+    doc.text("AquaPure Solutions, Inc.", 14, 60);
+    doc.text("123 Water Quality Avenue, Hydrocity, HY 12345", 14, 66);
+    doc.text("Phone: (555) 123-4567 | Email: info@aquapure-solutions.com", 14, 72);
+    
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 60);
+    doc.text("Current Water Quality Metrics", 14, 85);
     
     const metricsBody = metrics.map(metric => [
       metric.name,
@@ -132,7 +139,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     ]);
     
     autoTable(doc, {
-      startY: 64,
+      startY: 89,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
       headStyles: { 
@@ -144,7 +151,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell, row) => {
+          fillColor: function(cell) {
             const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
@@ -156,12 +163,12 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    const currentY = doc.lastAutoTable.finalY + 15;
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Historical Trends Data", 14, currentY);
+    doc.text("Historical Trends Data", 14, finalY);
     
-    let lastY = currentY + 4;
+    let lastY = finalY + 4;
     historicalData.forEach(data => {
       lastY += 10;
       doc.setFontSize(12);
@@ -187,10 +194,10 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         alternateRowStyles: { fillColor: [240, 240, 240] }
       });
       
-      lastY = doc.lastAutoTable.finalY + 10;
+      lastY = (doc as any).lastAutoTable.finalY + 10;
     });
     
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = (doc.internal as any).getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
@@ -198,7 +205,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'Water Quality Monitoring System | Historical Data Report',
+        'AquaPure Solutions, Inc. | Water Quality Monitoring System | Historical Data Report',
         pageSize.getWidth() / 2,
         pageHeight - 10,
         { align: 'center' }
@@ -563,3 +570,4 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
 };
 
 export default HistoricalData;
+
