@@ -55,6 +55,6 @@ declare module '@/index.css' {
   }
 }
 
-// Add alias type for HistoricalDataReport component
-export type HistoricalMetricData = HistoricalData;
+// Type aliases for component props
 export type WaterSourceMetric = WaterQualityMetric;
+export type HistoricalMetricData = HistoricalData;

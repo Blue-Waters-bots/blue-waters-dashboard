@@ -82,7 +82,7 @@ export const generateHistoricalDataReport = ({
       3: {
         fontStyle: 'bold',
         fillColor: function(cell) {
-          const status = String(cell.raw).toUpperCase();
+          const status = String(cell.raw || '').toUpperCase();
           if (status === 'SAFE') return [46, 204, 113];
           if (status === 'WARNING') return [241, 196, 15];
           return [231, 76, 60];

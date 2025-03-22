@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
 import { 
@@ -286,6 +285,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               {chartType === 'line' && (
+                
                 <LineChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -327,6 +327,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
               )}
 
               {chartType === 'bar' && (
+                
                 <BarChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -364,7 +365,35 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                 </BarChart>
               )}
 
+              {/* Fix the children prop issue by wrapping the content in a fragment or div */}
+              {chartType === 'pie' && (
+                <PieChart>
+                  <Pie
+                    data={preparePieData(selectedData.data)}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {preparePieData(selectedData.data).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} ${selectedMetricInfo?.unit || ''}`,
+                      selectedData.metricName
+                    ]}
+                  />
+                </PieChart>
+              )}
+
               {chartType === 'area' && (
+                
                 <AreaChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -404,33 +433,8 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                 </AreaChart>
               )}
 
-              {chartType === 'pie' && (
-                <PieChart>
-                  <Pie
-                    data={preparePieData(selectedData.data)}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {preparePieData(selectedData.data).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [
-                      `${value} ${selectedMetricInfo?.unit || ''}`,
-                      selectedData.metricName
-                    ]}
-                  />
-                </PieChart>
-              )}
-
               {chartType === 'scatter' && (
+                
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -469,6 +473,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
               )}
 
               {chartType === 'bubble' && (
+                
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -513,6 +518,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
               )}
 
               {chartType === 'composed' && (
+                
                 <ComposedChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}

@@ -32,10 +32,15 @@ const MapView: React.FC<MapViewProps> = ({ selectedSource }) => {
     if (!map.current) {
       mapboxgl.accessToken = MAPBOX_TOKEN;
       
+      // Default to Botswana coordinates if not found
+      const defaultCoords: [number, number] = [25.9, -24.6];
+      const initialCoords = (selectedSource && selectedSource.name && 
+        locationCoordinates[selectedSource.name]) || defaultCoords;
+      
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/outdoors-v12',
-        center: locationCoordinates[selectedSource.name] || [25.9, -24.6] as [number, number], // Default to Botswana
+        center: initialCoords,
         zoom: 10,
       });
 
@@ -49,9 +54,9 @@ const MapView: React.FC<MapViewProps> = ({ selectedSource }) => {
     // Update marker when source changes
     if (map.current) {
       // Get coordinates - handle the case where the source name doesn't exist in our coordinates map
-      const coordinates = (selectedSource && selectedSource.name && locationCoordinates[selectedSource.name]) 
-        ? locationCoordinates[selectedSource.name] 
-        : [25.9, -24.6] as [number, number]; // Default coordinates
+      const defaultCoords: [number, number] = [25.9, -24.6];
+      const coordinates = (selectedSource && selectedSource.name && 
+        locationCoordinates[selectedSource.name]) || defaultCoords;
       
       // Remove existing marker if it exists
       if (marker.current) {
@@ -59,10 +64,12 @@ const MapView: React.FC<MapViewProps> = ({ selectedSource }) => {
       }
       
       // Create a new marker
+      const markerColor = selectedSource.metrics && selectedSource.metrics.some(m => m.status === "danger") ? "#e11d48" : 
+                         selectedSource.metrics && selectedSource.metrics.some(m => m.status === "warning") ? "#f59e0b" : 
+                         "#16a34a";
+      
       marker.current = new mapboxgl.Marker({
-        color: selectedSource.metrics && selectedSource.metrics.some(m => m.status === "danger") ? "#e11d48" : 
-               selectedSource.metrics && selectedSource.metrics.some(m => m.status === "warning") ? "#f59e0b" : 
-               "#16a34a",
+        color: markerColor,
       })
         .setLngLat(coordinates)
         .setPopup(
