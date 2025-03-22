@@ -147,7 +147,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
             <span className="text-sm text-muted-foreground">Chart Type:</span>
             <ToggleGroup type="single" value={chartType} onValueChange={(value: ChartType) => value && setChartType(value)}>
               {chartTypes.map((chart) => (
-                <ToggleGroupItem key={chart.type} value={chart.type} aria-label={chart.label} title={chart.label}>
+                <ToggleGroupItem key={chart.type} value={chart.type} aria-label={chart.label}>
                   {chart.icon}
                 </ToggleGroupItem>
               ))}
