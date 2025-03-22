@@ -14,16 +14,17 @@ export interface DiseasePrediction {
   name: string;
   riskLevel: 'low' | 'medium' | 'high';
   description: string;
-  causedBy: string[];
+  causedBy?: string[];
 }
 
 export interface WaterSource {
   id: string;
   name: string;
   location: string;
-  type: 'Lake' | 'River' | 'Well' | 'Reservoir' | 'Treatment Plant'  | 'Dam';
+  type: 'Lake' | 'River' | 'Well' | 'Reservoir' | 'Treatment Plant' | 'Dam';
   metrics: WaterQualityMetric[];
   diseases: DiseasePrediction[];
+  lastUpdate?: string;
 }
 
 export interface HistoricalDataPoint {

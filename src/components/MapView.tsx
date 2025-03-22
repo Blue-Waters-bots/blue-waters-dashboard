@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -8,7 +9,7 @@ import { WaterSource } from '@/types/waterQuality';
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZS1kZXYiLCJhIjoiY2xzcG96NGYxMHE0bTJsbzd1cDdqeGI3bCJ9.nFiiI7EhfkGNyInqRnvitg';
 
 interface MapViewProps {
-  source: WaterSource;
+  selectedSource: WaterSource;
 }
 
 // These are example coordinates for our water sources
@@ -19,13 +20,13 @@ const locationCoordinates: Record<string, [number, number]> = {
   "Shashe Dam": [27.4222, -21.3667],
 };
 
-const MapView: React.FC<MapViewProps> = ({ source }) => {
+const MapView: React.FC<MapViewProps> = ({ selectedSource }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || !selectedSource) return;
 
     // Initialize map only once
     if (!map.current) {
@@ -34,7 +35,7 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/outdoors-v12',
-        center: locationCoordinates[source.name] || [25.9, -24.6], // Default to Botswana
+        center: locationCoordinates[selectedSource.name] || [25.9, -24.6], // Default to Botswana
         zoom: 10,
       });
 
@@ -47,7 +48,10 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
 
     // Update marker when source changes
     if (map.current) {
-      const coordinates = locationCoordinates[source.name] || [25.9, -24.6];
+      // Get coordinates - handle the case where the source name doesn't exist in our coordinates map
+      const coordinates = selectedSource.name && locationCoordinates[selectedSource.name] 
+        ? locationCoordinates[selectedSource.name] 
+        : [25.9, -24.6]; // Default coordinates
       
       // Remove existing marker if it exists
       if (marker.current) {
@@ -56,17 +60,17 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
       
       // Create a new marker
       marker.current = new mapboxgl.Marker({
-        color: source.metrics.some(m => m.status === "danger") ? "#e11d48" : 
-               source.metrics.some(m => m.status === "warning") ? "#f59e0b" : 
+        color: selectedSource.metrics && selectedSource.metrics.some(m => m.status === "danger") ? "#e11d48" : 
+               selectedSource.metrics && selectedSource.metrics.some(m => m.status === "warning") ? "#f59e0b" : 
                "#16a34a",
       })
         .setLngLat(coordinates)
         .setPopup(
           new mapboxgl.Popup({ offset: 25 })
             .setHTML(`
-              <strong>${source.name}</strong><br/>
-              ${source.type}<br/>
-              ${source.location}
+              <strong>${selectedSource.name || 'Unknown Location'}</strong><br/>
+              ${selectedSource.type || 'Unknown Type'}<br/>
+              ${selectedSource.location || 'Unknown Location'}
             `)
         )
         .addTo(map.current);
@@ -82,7 +86,7 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
     return () => {
       // No need to clean up the map as we're keeping it mounted
     };
-  }, [source]);
+  }, [selectedSource]);
 
   return (
     <div className="w-full h-64 rounded-lg overflow-hidden shadow-sm border border-gray-100">

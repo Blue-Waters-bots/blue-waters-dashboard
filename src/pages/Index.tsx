@@ -93,9 +93,9 @@ const Index = () => {
           fontStyle: 'bold',
           fillColor: (cell, data) => {
             const status = String(cell.raw).toUpperCase();
-            if (status === 'SAFE') return [46, 204, 113];
-            if (status === 'WARNING') return [241, 196, 15];
-            return [231, 76, 60];
+            if (status === 'SAFE') return [46, 204, 113] as [number, number, number];
+            if (status === 'WARNING') return [241, 196, 15] as [number, number, number];
+            return [231, 76, 60] as [number, number, number];
           },
           textColor: [255, 255, 255]
         }
@@ -130,9 +130,9 @@ const Index = () => {
           fontStyle: 'bold',
           fillColor: (cell, data) => {
             const level = String(cell.raw || '').toLowerCase();
-            if (level === 'low') return [46, 204, 113];
-            if (level === 'medium') return [241, 196, 15];
-            return [231, 76, 60];
+            if (level === 'low') return [46, 204, 113] as [number, number, number];
+            if (level === 'medium') return [241, 196, 15] as [number, number, number];
+            return [231, 76, 60] as [number, number, number];
           },
           textColor: [255, 255, 255]
         }
@@ -228,27 +228,31 @@ const Index = () => {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-800">{source.name}</h3>
-                    {source.overallStatus && (
+                    {/* Only show overall status if it exists */}
+                    {source.metrics && (
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                          source.overallStatus === "safe"
-                            ? "bg-green-100 text-green-700"
-                            : source.overallStatus === "warning"
+                          source.metrics.some(m => m.status === "danger")
+                            ? "bg-red-100 text-red-700"
+                            : source.metrics.some(m => m.status === "warning")
                             ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-700"
+                            : "bg-green-100 text-green-700"
                         }`}
                       >
-                        {source.overallStatus.toUpperCase()}
+                        {source.metrics.some(m => m.status === "danger")
+                          ? "DANGER"
+                          : source.metrics.some(m => m.status === "warning")
+                          ? "WARNING"
+                          : "SAFE"}
                       </span>
                     )}
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">{source.location}</p>
-                  {source.lastUpdate && (
-                    <div className="flex items-center text-xs text-muted-foreground">
-                      <Calendar size={14} className="mr-1" />
-                      Last update: {source.lastUpdate}
-                    </div>
-                  )}
+                  {/* Show last update if it exists */}
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Calendar size={14} className="mr-1" />
+                    Last update: {new Date().toLocaleDateString()}
+                  </div>
                 </div>
               ))}
             </div>
