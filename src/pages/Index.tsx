@@ -4,8 +4,9 @@ import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
 import QualityMetrics from "@/components/QualityMetrics";
 import HealthRisks from "@/components/HealthRisks";
+import MapView from "@/components/MapView";
 import { waterSources } from "@/data/waterQualityData";
-import { FileText, Droplet } from "lucide-react";
+import { FileText, Droplet, MapPin } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 
 const Index = () => {
@@ -115,7 +116,7 @@ const Index = () => {
                 <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full text-water-blue bg-water-blue/10">
-                      <Droplet className="text-water-blue" />
+                      <MapPin className="text-water-blue" />
                     </div>
                     <div>
                       <p className="text-muted-foreground text-sm">Location</p>
@@ -138,11 +139,18 @@ const Index = () => {
               </div>
             </div>
             
-            <WaterSourceSelector 
-              sources={waterSources}
-              selectedSource={selectedSource}
-              onSelectSource={setSelectedSource}
-            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <WaterSourceSelector 
+                sources={waterSources}
+                selectedSource={selectedSource}
+                onSelectSource={setSelectedSource}
+              />
+              
+              <div className="glass-panel p-6 rounded-xl shadow-md">
+                <h2 className="text-lg font-medium mb-4">Location Map</h2>
+                <MapView source={selectedSource} />
+              </div>
+            </div>
             
             <QualityMetrics metrics={selectedSource.metrics} />
             
