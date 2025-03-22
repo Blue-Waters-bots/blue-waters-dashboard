@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import HistoricalData from "@/components/HistoricalData";
@@ -8,6 +9,12 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 
+// Define types for jsPDF
+interface PubSub {
+  [key: string]: any;
+}
+
+// Update the jsPDF interface definition to include needed properties
 declare module "jspdf" {
   interface jsPDF {
     lastAutoTable: {
@@ -24,7 +31,7 @@ declare module "jspdf" {
       };
       pages: number[];
       getEncryptor(objectId: number): (data: string) => string;
-      getNumberOfPages: () => number;
+      getNumberOfPages(): number;
     };
   }
 }
@@ -87,13 +94,13 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
+          fillColor: (cell) => {
             const status = cell.raw.toString();
-            if (status === 'SAFE') return [46, 204, 113];
-            if (status === 'WARNING') return [241, 196, 15];
-            return [231, 76, 60];
-          } as [number, number, number],
-          textColor: [255, 255, 255]
+            if (status === 'SAFE') return [46, 204, 113] as [number, number, number];
+            if (status === 'WARNING') return [241, 196, 15] as [number, number, number];
+            return [231, 76, 60] as [number, number, number];
+          },
+          textColor: [255, 255, 255] // Ensure text is white for visibility
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }

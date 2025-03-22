@@ -10,6 +10,10 @@ import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+interface PubSub {
+  [key: string]: any;
+}
+
 declare module "jspdf" {
   interface jsPDF {
     lastAutoTable: {
@@ -26,7 +30,7 @@ declare module "jspdf" {
       };
       pages: number[];
       getEncryptor(objectId: number): (data: string) => string;
-      getNumberOfPages: () => number;
+      getNumberOfPages(): number;
     };
   }
 }
@@ -100,12 +104,12 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
+          fillColor: (cell) => {
             const status = cell.raw.toString();
-            if (status === 'SAFE') return [46, 204, 113];
-            if (status === 'WARNING') return [241, 196, 15];
-            return [231, 76, 60];
-          } as [number, number, number],
+            if (status === 'SAFE') return [46, 204, 113] as [number, number, number];
+            if (status === 'WARNING') return [241, 196, 15] as [number, number, number];
+            return [231, 76, 60] as [number, number, number];
+          },
           textColor: [255, 255, 255]
         }
       },
@@ -137,12 +141,12 @@ const Index = () => {
         columnStyles: {
           2: { 
             fontStyle: 'bold',
-            fillColor: function(cell) {
+            fillColor: (cell) => {
               const risk = cell.raw.toString().toLowerCase();
-              if (risk === 'low') return [46, 204, 113];
-              if (risk === 'medium') return [241, 196, 15];
-              return [231, 76, 60];
-            } as [number, number, number],
+              if (risk === 'low') return [46, 204, 113] as [number, number, number];
+              if (risk === 'medium') return [241, 196, 15] as [number, number, number];
+              return [231, 76, 60] as [number, number, number];
+            },
             textColor: [255, 255, 255]
           }
         },
