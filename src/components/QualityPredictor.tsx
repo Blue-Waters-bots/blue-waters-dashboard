@@ -1,3 +1,4 @@
+
 import { QualityPrediction } from "@/types/waterQuality";
 import { cn } from "@/lib/utils";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -256,7 +257,7 @@ const QualityPredictor = ({ prediction }: QualityPredictorProps) => {
           </div>
         </div>
 
-        <div className="h-[195px] w-full">
+        <div className="h-[331.5px] w-full">
           <ChartContainer 
             config={{
               quality: {
