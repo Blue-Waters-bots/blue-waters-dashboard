@@ -103,18 +103,18 @@ const Index = () => {
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    // Add health risks section
+    // Add health risks section - ensuring we check for existence of diseases
     const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Health Risk Assessment", 14, finalY);
     
-    // Create health risks table
-    const healthRiskData = selectedSource.healthRisks.map(risk => [
-      risk.type,
-      risk.level,
+    // Create health risks table - with null checks
+    const healthRiskData = selectedSource.diseases ? selectedSource.diseases.map(risk => [
+      risk.name,
+      risk.riskLevel,
       risk.description
-    ]);
+    ]) : [];
     
     autoTable(doc, {
       startY: finalY + 4,
@@ -129,9 +129,9 @@ const Index = () => {
         1: { 
           fontStyle: 'bold',
           fillColor: (cell, data) => {
-            const level = String(cell.raw).toLowerCase();
+            const level = String(cell.raw || '').toLowerCase();
             if (level === 'low') return [46, 204, 113];
-            if (level === 'moderate') return [241, 196, 15];
+            if (level === 'medium') return [241, 196, 15];
             return [231, 76, 60];
           },
           textColor: [255, 255, 255]
@@ -228,23 +228,27 @@ const Index = () => {
                 >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-medium text-gray-800">{source.name}</h3>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        source.overallStatus === "safe"
-                          ? "bg-green-100 text-green-700"
-                          : source.overallStatus === "warning"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {source.overallStatus.toUpperCase()}
-                    </span>
+                    {source.overallStatus && (
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                          source.overallStatus === "safe"
+                            ? "bg-green-100 text-green-700"
+                            : source.overallStatus === "warning"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {source.overallStatus.toUpperCase()}
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">{source.location}</p>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <Calendar size={14} className="mr-1" />
-                    Last update: {source.lastUpdate}
-                  </div>
+                  {source.lastUpdate && (
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <Calendar size={14} className="mr-1" />
+                      Last update: {source.lastUpdate}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -256,7 +260,7 @@ const Index = () => {
           </div>
           
           <div className="mt-6">
-            <HealthRisks risks={selectedSource.healthRisks} />
+            <HealthRisks diseases={selectedSource.diseases} />
           </div>
         </div>
       </div>
