@@ -6,15 +6,8 @@ import {
   AreaChart, Area, ComposedChart, Legend
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { 
-  Download, 
-  BarChart as BarChartIcon, 
-  PieChart as PieChartIcon, 
-  LineChart as LineChartIcon, 
-  AreaChart as AreaChartIcon, 
-  Combine, 
-  CircleDot 
-} from "lucide-react";
+import { Download, BarChart as BarChartIcon, PieChart as PieChartIcon, LineChart as LineChartIcon, 
+  AreaChart as AreaChartIcon, Combine, CircleDot } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -122,21 +115,14 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     doc.setFontSize(22);
     doc.text("Water Quality Historical Report", 105, 20, { align: "center" });
     
-    doc.setFontSize(12);
-    doc.text("AquaPure Solutions, Inc.", 105, 30, { align: "center" });
-    
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(`Generated: ${currentDate}`, 14, 50);
     
-    doc.text("AquaPure Solutions, Inc.", 14, 60);
-    doc.text("123 Water Quality Avenue, Hydrocity, HY 12345", 14, 66);
-    doc.text("Phone: (555) 123-4567 | Email: info@aquapure-solutions.com", 14, 72);
-    
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 85);
+    doc.text("Current Water Quality Metrics", 14, 60);
     
     const metricsBody = metrics.map(metric => [
       metric.name,
@@ -146,7 +132,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     ]);
     
     autoTable(doc, {
-      startY: 89,
+      startY: 64,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
       headStyles: { 
@@ -158,24 +144,24 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
-            const status = cell.raw?.toString() || '';
+          fillColor: (cell, row) => {
+            const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          } as any,
+          },
           textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    const finalY = (doc as any).lastAutoTable.finalY + 15;
+    const currentY = doc.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Historical Trends Data", 14, finalY);
+    doc.text("Historical Trends Data", 14, currentY);
     
-    let lastY = finalY + 4;
+    let lastY = currentY + 4;
     historicalData.forEach(data => {
       lastY += 10;
       doc.setFontSize(12);
@@ -201,10 +187,10 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         alternateRowStyles: { fillColor: [240, 240, 240] }
       });
       
-      lastY = (doc as any).lastAutoTable.finalY + 10;
+      lastY = doc.lastAutoTable.finalY + 10;
     });
     
-    const pageCount = (doc.internal as any).getNumberOfPages();
+    const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
@@ -212,7 +198,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'AquaPure Solutions, Inc. | Water Quality Monitoring System | Historical Data Report',
+        'Water Quality Monitoring System | Historical Data Report',
         pageSize.getWidth() / 2,
         pageHeight - 10,
         { align: 'center' }
@@ -285,7 +271,6 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               {chartType === 'line' && (
-                
                 <LineChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -327,7 +312,6 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
               )}
 
               {chartType === 'bar' && (
-                
                 <BarChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -365,35 +349,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                 </BarChart>
               )}
 
-              {/* Fix the children prop issue by wrapping the content in a fragment or div */}
-              {chartType === 'pie' && (
-                <PieChart>
-                  <Pie
-                    data={preparePieData(selectedData.data)}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {preparePieData(selectedData.data).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [
-                      `${value} ${selectedMetricInfo?.unit || ''}`,
-                      selectedData.metricName
-                    ]}
-                  />
-                </PieChart>
-              )}
-
               {chartType === 'area' && (
-                
                 <AreaChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -433,8 +389,33 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                 </AreaChart>
               )}
 
+              {chartType === 'pie' && (
+                <PieChart>
+                  <Pie
+                    data={preparePieData(selectedData.data)}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {preparePieData(selectedData.data).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} ${selectedMetricInfo?.unit || ''}`,
+                      selectedData.metricName
+                    ]}
+                  />
+                </PieChart>
+              )}
+
               {chartType === 'scatter' && (
-                
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -473,7 +454,6 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
               )}
 
               {chartType === 'bubble' && (
-                
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -518,7 +498,6 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
               )}
 
               {chartType === 'composed' && (
-                
                 <ComposedChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}

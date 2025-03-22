@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 @tailwind base;
@@ -146,23 +145,6 @@
 
 .bg-water-blue {
   background-color: hsl(var(--water-blue));
-}
-
-/* Status tag utilities */
-.status-tag {
-  @apply font-medium px-2 py-1 rounded-full;
-}
-
-.status-tag-safe {
-  @apply bg-water-safe/20 text-water-safe border border-water-safe/30;
-}
-
-.status-tag-warning {
-  @apply bg-water-warning/20 text-water-warning border border-water-warning/30;
-}
-
-.status-tag-danger {
-  @apply bg-water-danger/20 text-water-danger border border-water-danger/30;
 }
 
 .animate-float {

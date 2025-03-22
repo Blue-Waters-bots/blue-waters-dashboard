@@ -34,8 +34,7 @@ const HealthRisks = ({ diseases }: HealthRisksProps) => {
     }
   };
 
-  // Check if diseases array exists and has items
-  if (!diseases || !diseases.length) {
+  if (!diseases.length) {
     return (
       <div className="w-full mb-8">
         <h2 className="text-lg font-medium mb-4">Health Risk Assessment</h2>
@@ -72,10 +71,10 @@ const HealthRisks = ({ diseases }: HealthRisksProps) => {
               <div>
                 <p className="text-sm font-medium mb-1">Caused by:</p>
                 <div className="flex flex-wrap gap-2">
-                  {disease.causedBy && disease.causedBy.map((cause, index) => (
+                  {disease.causedBy.map((cause, index) => (
                     <span 
                       key={index}
-                      className="text-xs px-2 py-1 bg-secondary rounded-full font-medium"
+                      className="text-xs px-2 py-1 bg-secondary rounded-full"
                     >
                       {cause}
                     </span>

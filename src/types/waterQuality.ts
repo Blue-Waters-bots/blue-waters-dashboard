@@ -14,17 +14,16 @@ export interface DiseasePrediction {
   name: string;
   riskLevel: 'low' | 'medium' | 'high';
   description: string;
-  causedBy?: string[];
+  causedBy: string[];
 }
 
 export interface WaterSource {
   id: string;
   name: string;
   location: string;
-  type: 'Lake' | 'River' | 'Well' | 'Reservoir' | 'Treatment Plant' | 'Dam';
+  type: 'Lake' | 'River' | 'Well' | 'Reservoir' | 'Treatment Plant'  | 'Dam';
   metrics: WaterQualityMetric[];
   diseases: DiseasePrediction[];
-  lastUpdate?: string;
 }
 
 export interface HistoricalDataPoint {
@@ -54,7 +53,3 @@ declare module '@/index.css' {
     '--water-blue': string;
   }
 }
-
-// Type aliases for component props
-export type WaterSourceMetric = WaterQualityMetric;
-export type HistoricalMetricData = HistoricalData;

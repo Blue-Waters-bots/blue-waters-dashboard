@@ -92,28 +92,17 @@ const QualityMetrics = ({ metrics }: QualityMetricsProps) => {
             </div>
             
             <div className="mb-2">
-              <span className={cn("text-2xl font-semibold", getStatusColor(metric.status))}>
+              <span className={cn("text-2xl font-light", getStatusColor(metric.status))}>
                 {metric.value}
               </span>
               <span className="text-sm text-muted-foreground ml-1">{metric.unit}</span>
             </div>
             
-            <div className="w-full h-2 bg-secondary rounded-full overflow-hidden mb-2">
+            <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
               <div
                 className={cn("h-full rounded-full", getProgressColor(metric.status))}
                 style={{ width: `${calculatePercentage(metric)}%` }}
               ></div>
-            </div>
-
-            <div className="text-right">
-              <span className={cn(
-                "text-xs font-medium px-2 py-1 rounded-full inline-block",
-                metric.status === "safe" ? "bg-water-safe/20 text-water-safe" : 
-                metric.status === "warning" ? "bg-water-warning/20 text-water-warning" : 
-                "bg-water-danger/20 text-water-danger"
-              )}>
-                {metric.status.toUpperCase()}
-              </span>
             </div>
           </div>
         ))}
