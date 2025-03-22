@@ -147,7 +147,13 @@ const QualityPredictor = ({ prediction }: QualityPredictorProps) => {
                 <ChartTooltip 
                   content={
                     <ChartTooltipContent 
-                      formatter={(value, name) => [`${value.toFixed(1)}`, 'Quality Score']}
+                      formatter={(value) => {
+                        // Handle both number and string values
+                        if (typeof value === 'number') {
+                          return [`${value.toFixed(1)}`, 'Quality Score'];
+                        }
+                        return [value, 'Quality Score'];
+                      }}
                     />
                   }
                 />
