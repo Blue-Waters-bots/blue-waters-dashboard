@@ -9,48 +9,28 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 
-// Define types for jsPDF
-interface PubSub {
-  [key: string]: any;
-}
-
-// Update the jsPDF interface definition to include needed properties
-declare module "jspdf" {
-  interface jsPDF {
-    lastAutoTable: {
-      finalY: number;
-    };
-    internal: {
-      events: PubSub;
-      scaleFactor: number;
-      pageSize: { 
-        width: number; 
-        getWidth: () => number; 
-        height: number; 
-        getHeight: () => number; 
-      };
-      pages: number[];
-      getEncryptor(objectId: number): (data: string) => string;
-      getNumberOfPages(): number;
-    };
-  }
-}
-
 const HistoricalTrends = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
   const handleDownloadReport = () => {
+    // Create a new PDF document
     const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
     
-    doc.setFillColor(0, 102, 204);
+    // Add header with logo and title
+    doc.setFillColor(0, 102, 204); // Header background color
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     
+    // Add company name and details
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.text("Water Quality Report", 105, 20, { align: "center" });
     
+    doc.setFontSize(12);
+    doc.text("Blue Group Solutions (Pty) Ltd", 105, 30, { align: "center" });
+    
+    // Add source information
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
@@ -61,19 +41,18 @@ const HistoricalTrends = () => {
     doc.text(`Generated: ${dateGenerated}`, 14, 60);
     doc.text(`Location: ${selectedSource.location}`, 14, 66);
     doc.text(`Type: ${selectedSource.type}`, 14, 72);
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
+    
+    // Add company contact information
     doc.text("Blue Group Solutions (Pty) Ltd", 14, 82);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("Gaborone, Botswana", 14, 88);
+    doc.text("Plot 1234, Main Mall, Gaborone, Botswana", 14, 88);
     doc.text("Phone: +267 76953391 | Email: admin@bluegroupbw.com", 14, 94);
     
+    // Add current metrics table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 106);
+    doc.text("Current Water Quality Metrics", 14, 104);
     
+    // Create table data for current metrics
     const metricsBody = selectedSource.metrics.map(metric => [
       metric.name,
       `${metric.value} ${metric.unit}`,
@@ -82,7 +61,7 @@ const HistoricalTrends = () => {
     ]);
     
     autoTable(doc, {
-      startY: 110,
+      startY: 108,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
       headStyles: { 
@@ -94,24 +73,26 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell) => {
-            const status = cell.raw.toString();
-            if (status === 'SAFE') return [46, 204, 113] as [number, number, number];
-            if (status === 'WARNING') return [241, 196, 15] as [number, number, number];
-            return [231, 76, 60] as [number, number, number];
+          fillColor: (cell, data) => {
+            const status = String(cell.raw).toUpperCase();
+            if (status === 'SAFE') return [46, 204, 113];
+            if (status === 'WARNING') return [241, 196, 15];
+            return [231, 76, 60];
           },
-          textColor: [255, 255, 255] // Ensure text is white for visibility
+          textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    const currentY = doc.lastAutoTable.finalY + 15;
+    // Add historical data section
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Historical Trends Data", 14, currentY);
+    doc.text("Historical Trends Data", 14, finalY);
     
-    let lastY = currentY + 4;
+    // Create historical data tables for each metric
+    let lastY = finalY + 4;
     historicalData.forEach(history => {
       const metric = selectedSource.metrics.find(m => m.id === history.metricId);
       if (metric) {
@@ -138,11 +119,12 @@ const HistoricalTrends = () => {
           alternateRowStyles: { fillColor: [240, 240, 240] }
         });
         
-        lastY = doc.lastAutoTable.finalY + 10;
+        lastY = (doc as any).lastAutoTable.finalY + 10;
       }
     });
     
-    const pageCount = doc.internal.getNumberOfPages();
+    // Add footer
+    const pageCount = (doc.internal as any).getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
@@ -150,9 +132,9 @@ const HistoricalTrends = () => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'Blue Group Solutions (Pty) Ltd | Water Quality Monitoring System',
+        'Blue Group Solutions (Pty) Ltd | Water Quality Monitoring System | Confidential Report',
         pageSize.getWidth() / 2,
-        pageHeight - 15,
+        pageHeight - 10,
         { align: 'center' }
       );
       doc.text(
@@ -160,14 +142,9 @@ const HistoricalTrends = () => {
         pageSize.getWidth() - 20,
         pageHeight - 10
       );
-      doc.text(
-        'admin@bluegroupbw.com | +267 76953391',
-        pageSize.getWidth() / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
     }
     
+    // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);
     
     toast({

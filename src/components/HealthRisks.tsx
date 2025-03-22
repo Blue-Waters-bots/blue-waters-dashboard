@@ -74,7 +74,7 @@ const HealthRisks = ({ diseases }: HealthRisksProps) => {
                   {disease.causedBy.map((cause, index) => (
                     <span 
                       key={index}
-                      className="text-xs px-2 py-1 bg-secondary rounded-full"
+                      className="text-xs px-2 py-1 bg-secondary rounded-full font-medium"
                     >
                       {cause}
                     </span>

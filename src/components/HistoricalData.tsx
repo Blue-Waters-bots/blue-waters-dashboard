@@ -13,33 +13,6 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 
-interface PubSub {
-  [key: string]: any;
-}
-
-type ColorFunction = (cell: any) => [number, number, number];
-
-declare module "jspdf" {
-  interface jsPDF {
-    lastAutoTable: {
-      finalY: number;
-    };
-    internal: {
-      events: PubSub;
-      scaleFactor: number;
-      pageSize: { 
-        width: number; 
-        getWidth: () => number; 
-        height: number; 
-        getHeight: () => number; 
-      };
-      pages: number[];
-      getEncryptor(objectId: number): (data: string) => string;
-      getNumberOfPages(): number;
-    };
-  }
-}
-
 interface HistoricalDataProps {
   historicalData: HistoricalDataType[];
   metrics: WaterQualityMetric[];
@@ -142,22 +115,21 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     doc.setFontSize(22);
     doc.text("Water Quality Historical Report", 105, 20, { align: "center" });
     
+    doc.setFontSize(12);
+    doc.text("AquaPure Solutions, Inc.", 105, 30, { align: "center" });
+    
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(`Generated: ${currentDate}`, 14, 50);
     
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Blue Group Solutions (Pty) Ltd", 14, 60);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text("Gaborone, Botswana", 14, 66);
-    doc.text("Phone: +267 76953391 | Email: admin@bluegroupbw.com", 14, 72);
+    doc.text("AquaPure Solutions, Inc.", 14, 60);
+    doc.text("123 Water Quality Avenue, Hydrocity, HY 12345", 14, 66);
+    doc.text("Phone: (555) 123-4567 | Email: info@aquapure-solutions.com", 14, 72);
     
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 84);
+    doc.text("Current Water Quality Metrics", 14, 85);
     
     const metricsBody = metrics.map(metric => [
       metric.name,
@@ -167,7 +139,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     ]);
     
     autoTable(doc, {
-      startY: 88,
+      startY: 89,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
       headStyles: { 
@@ -179,11 +151,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell) => {
+          fillColor: function(cell) {
             const status = cell.raw.toString();
-            if (status === 'SAFE') return [46, 204, 113] as [number, number, number];
-            if (status === 'WARNING') return [241, 196, 15] as [number, number, number];
-            return [231, 76, 60] as [number, number, number];
+            if (status === 'SAFE') return [46, 204, 113];
+            if (status === 'WARNING') return [241, 196, 15];
+            return [231, 76, 60];
           },
           textColor: [255, 255, 255]
         }
@@ -191,12 +163,12 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    const currentY = doc.lastAutoTable.finalY + 15;
+    const finalY = (doc as any).lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Historical Trends Data", 14, currentY);
+    doc.text("Historical Trends Data", 14, finalY);
     
-    let lastY = currentY + 4;
+    let lastY = finalY + 4;
     historicalData.forEach(data => {
       lastY += 10;
       doc.setFontSize(12);
@@ -222,10 +194,10 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         alternateRowStyles: { fillColor: [240, 240, 240] }
       });
       
-      lastY = doc.lastAutoTable.finalY + 10;
+      lastY = (doc as any).lastAutoTable.finalY + 10;
     });
     
-    const pageCount = doc.internal.getNumberOfPages();
+    const pageCount = (doc.internal as any).getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(10);
@@ -233,21 +205,15 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'Blue Group Solutions (Pty) Ltd | Water Quality Monitoring System',
+        'AquaPure Solutions, Inc. | Water Quality Monitoring System | Historical Data Report',
         pageSize.getWidth() / 2,
-        pageHeight - 15,
+        pageHeight - 10,
         { align: 'center' }
       );
       doc.text(
         `Page ${i} of ${pageCount}`,
         pageSize.getWidth() - 20,
         pageHeight - 10
-      );
-      doc.text(
-        'admin@bluegroupbw.com | +267 76953391',
-        pageSize.getWidth() / 2,
-        pageHeight - 10,
-        { align: 'center' }
       );
     }
     
@@ -310,8 +276,8 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         
         {selectedData && (
           <div className="h-64 w-full">
-            {chartType === 'line' && (
-              <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'line' && (
                 <LineChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -350,11 +316,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
-              </ResponsiveContainer>
-            )}
+              )}
 
-            {chartType === 'bar' && (
-              <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'bar' && (
                 <BarChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -390,11 +354,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer>
-            )}
+              )}
 
-            {chartType === 'area' && (
-              <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'area' && (
                 <AreaChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -432,11 +394,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fillOpacity={0.3}
                   />
                 </AreaChart>
-              </ResponsiveContainer>
-            )}
+              )}
 
-            {chartType === 'pie' && (
-              <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'pie' && (
                 <PieChart>
                   <Pie
                     data={preparePieData(selectedData.data)}
@@ -460,11 +420,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     ]}
                   />
                 </PieChart>
-              </ResponsiveContainer>
-            )}
+              )}
 
-            {chartType === 'scatter' && (
-              <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'scatter' && (
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -500,11 +458,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fill={getLineColor(selectedMetric)}
                   />
                 </ScatterChart>
-              </ResponsiveContainer>
-            )}
+              )}
 
-            {chartType === 'bubble' && (
-              <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'bubble' && (
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -546,11 +502,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fill={getLineColor(selectedMetric)}
                   />
                 </ScatterChart>
-              </ResponsiveContainer>
-            )}
+              )}
 
-            {chartType === 'composed' && (
-              <ResponsiveContainer width="100%" height="100%">
+              {chartType === 'composed' && (
                 <ComposedChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -584,8 +538,8 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                   <Bar dataKey="value" fill={COLORS[1]} name="Monthly Value" barSize={20} />
                   <Line type="monotone" dataKey="value" stroke={COLORS[0]} name="Trend" />
                 </ComposedChart>
-              </ResponsiveContainer>
-            )}
+              )}
+            </ResponsiveContainer>
           </div>
         )}
         
@@ -616,3 +570,4 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
 };
 
 export default HistoricalData;
+
