@@ -49,7 +49,7 @@ const WaterQualityPrediction = () => {
       <Sidebar />
       
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-[150%] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
             <div className="glass-panel rounded-xl p-6 shadow-lg">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
