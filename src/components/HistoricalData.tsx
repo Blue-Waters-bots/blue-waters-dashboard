@@ -1,19 +1,47 @@
 
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis,
+  AreaChart, Area, ComposedChart, Legend
+} from "recharts";
 import { cn } from "@/lib/utils";
-import { Download } from "lucide-react";
+import { Download, BarChart as BarChartIcon, PieChart as PieChartIcon, LineChart as LineChartIcon, 
+  AreaChart as AreaChartIcon, Combine, CircleDot, ArrowRightLeft } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface HistoricalDataProps {
   historicalData: HistoricalDataType[];
   metrics: WaterQualityMetric[];
 }
 
+type ChartType = 'line' | 'bar' | 'pie' | 'area' | 'scatter' | 'bubble' | 'composed';
+
+const chartTypes: { type: ChartType; label: string; icon: React.ReactNode }[] = [
+  { type: 'line', label: 'Line', icon: <LineChartIcon size={16} /> },
+  { type: 'bar', label: 'Bar', icon: <BarChartIcon size={16} /> },
+  { type: 'area', label: 'Area', icon: <AreaChartIcon size={16} /> },
+  { type: 'pie', label: 'Pie', icon: <PieChartIcon size={16} /> },
+  { type: 'scatter', label: 'Scatter', icon: <CircleDot size={16} /> },
+  { type: 'bubble', label: 'Bubble', icon: <CircleDot size={16} /> },
+  { type: 'composed', label: 'Composed', icon: <Combine size={16} /> },
+];
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
+
 const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
   const [selectedMetric, setSelectedMetric] = useState<string>(
     historicalData.length > 0 ? historicalData[0].metricId : ""
   );
+  const [chartType, setChartType] = useState<ChartType>('line');
 
   const selectedData = historicalData.find((d) => d.metricId === selectedMetric);
   const selectedMetricInfo = metrics.find((m) => m.id === selectedMetric);
@@ -55,6 +83,24 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     };
   });
 
+  // Function to prepare data for pie chart
+  const preparePieData = (data: { date: string; value: number }[]) => {
+    return data.map(item => ({
+      name: new Date(item.date).toLocaleString('default', { month: 'short' }),
+      value: item.value
+    }));
+  };
+
+  // Function to prepare bubble chart data
+  const prepareBubbleData = (data: { date: string; value: number }[]) => {
+    return data.map((item, index) => ({
+      x: index,
+      y: item.value,
+      z: Math.max(5, Math.abs(item.value) * 0.5), // Size based on value
+      name: new Date(item.date).toLocaleString('default', { month: 'short' })
+    }));
+  };
+
   if (!allMetricsData.length) {
     return (
       <div className="w-full mb-8">
@@ -79,64 +125,301 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         </button>
       </div>
       <div className="glass-panel rounded-lg p-4">
-        <div className="flex flex-wrap gap-2 mb-4">
-          {allMetricsData.map((data) => (
-            <button
-              key={data.metricId}
-              className={cn(
-                "px-3 py-1 text-sm rounded-full transition-all",
-                selectedMetric === data.metricId
-                  ? "bg-water-blue text-white"
-                  : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-              )}
-              onClick={() => setSelectedMetric(data.metricId)}
-            >
-              {data.metricName}
-            </button>
-          ))}
+        <div className="grid gap-4 mb-4">
+          <div className="flex flex-wrap gap-2">
+            {allMetricsData.map((data) => (
+              <button
+                key={data.metricId}
+                className={cn(
+                  "px-3 py-1 text-sm rounded-full transition-all",
+                  selectedMetric === data.metricId
+                    ? "bg-water-blue text-white"
+                    : "bg-secondary text-muted-foreground hover:bg-secondary/80"
+                )}
+                onClick={() => setSelectedMetric(data.metricId)}
+              >
+                {data.metricName}
+              </button>
+            ))}
+          </div>
+          
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-sm text-muted-foreground">Chart Type:</span>
+            <ToggleGroup type="single" value={chartType} onValueChange={(value: ChartType) => value && setChartType(value)}>
+              {chartTypes.map((chart) => (
+                <ToggleGroupItem key={chart.type} value={chart.type} aria-label={chart.label} title={chart.label}>
+                  {chart.icon}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
         </div>
         
         {selectedData && (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={selectedData.data}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
-                    return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
-                  }}
-                />
-                <YAxis 
-                  domain={[
-                    (dataMin: number) => Math.floor(dataMin * 0.9),
-                    (dataMax: number) => Math.ceil(dataMax * 1.1)
-                  ]} 
-                  tickFormatter={(value) => value.toFixed(1)}
-                />
-                <Tooltip 
-                  formatter={(value: number) => [
-                    `${value} ${selectedMetricInfo?.unit || ''}`,
-                    selectedData.metricName
-                  ]}
-                  labelFormatter={(label) => {
-                    const date = new Date(label);
-                    return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke={getLineColor(selectedMetric)}
-                  strokeWidth={2}
-                  dot={{ r: 4, strokeWidth: 2 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
+              {chartType === 'line' && (
+                <LineChart
+                  data={selectedData.data}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+                    }}
+                  />
+                  <YAxis 
+                    domain={[
+                      (dataMin: number) => Math.floor(dataMin * 0.9),
+                      (dataMax: number) => Math.ceil(dataMax * 1.1)
+                    ]} 
+                    tickFormatter={(value) => value.toFixed(1)}
+                  />
+                  <Tooltip 
+                    formatter={(value: number) => [
+                      `${value} ${selectedMetricInfo?.unit || ''}`,
+                      selectedData.metricName
+                    ]}
+                    labelFormatter={(label) => {
+                      const date = new Date(label);
+                      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke={getLineColor(selectedMetric)}
+                    strokeWidth={2}
+                    dot={{ r: 4, strokeWidth: 2 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              )}
+
+              {chartType === 'bar' && (
+                <BarChart
+                  data={selectedData.data}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+                    }}
+                  />
+                  <YAxis
+                    domain={[
+                      (dataMin: number) => Math.floor(dataMin * 0.9),
+                      (dataMax: number) => Math.ceil(dataMax * 1.1)
+                    ]}
+                    tickFormatter={(value) => value.toFixed(1)}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} ${selectedMetricInfo?.unit || ''}`,
+                      selectedData.metricName
+                    ]}
+                    labelFormatter={(label) => {
+                      const date = new Date(label);
+                      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+                    }}
+                  />
+                  <Bar
+                    dataKey="value"
+                    fill={getLineColor(selectedMetric)}
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              )}
+
+              {chartType === 'area' && (
+                <AreaChart
+                  data={selectedData.data}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+                    }}
+                  />
+                  <YAxis
+                    domain={[
+                      (dataMin: number) => Math.floor(dataMin * 0.9),
+                      (dataMax: number) => Math.ceil(dataMax * 1.1)
+                    ]}
+                    tickFormatter={(value) => value.toFixed(1)}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} ${selectedMetricInfo?.unit || ''}`,
+                      selectedData.metricName
+                    ]}
+                    labelFormatter={(label) => {
+                      const date = new Date(label);
+                      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke={getLineColor(selectedMetric)}
+                    fill={getLineColor(selectedMetric)}
+                    fillOpacity={0.3}
+                  />
+                </AreaChart>
+              )}
+
+              {chartType === 'pie' && (
+                <PieChart>
+                  <Pie
+                    data={preparePieData(selectedData.data)}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {preparePieData(selectedData.data).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} ${selectedMetricInfo?.unit || ''}`,
+                      selectedData.metricName
+                    ]}
+                  />
+                </PieChart>
+              )}
+
+              {chartType === 'scatter' && (
+                <ScatterChart
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="date" 
+                    type="category"
+                    name="Month"
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+                    }}
+                  />
+                  <YAxis 
+                    dataKey="value"
+                    name="Value"
+                    domain={[
+                      (dataMin: number) => Math.floor(dataMin * 0.9),
+                      (dataMax: number) => Math.ceil(dataMax * 1.1)
+                    ]}
+                    tickFormatter={(value) => value.toFixed(1)}
+                  />
+                  <Tooltip 
+                    formatter={(value: number) => [
+                      `${value} ${selectedMetricInfo?.unit || ''}`,
+                      selectedData.metricName
+                    ]}
+                    cursor={{ strokeDasharray: '3 3' }}
+                  />
+                  <Scatter 
+                    name={selectedData.metricName} 
+                    data={selectedData.data} 
+                    fill={getLineColor(selectedMetric)}
+                  />
+                </ScatterChart>
+              )}
+
+              {chartType === 'bubble' && (
+                <ScatterChart
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="x" 
+                    type="number"
+                    name="Index"
+                    tickFormatter={(value) => {
+                      const date = new Date(selectedData.data[value]?.date || "");
+                      return date instanceof Date && !isNaN(date.getTime()) ? 
+                        `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}` : value;
+                    }}
+                  />
+                  <YAxis 
+                    dataKey="y"
+                    name="Value"
+                    domain={[
+                      (dataMin: number) => Math.floor(dataMin * 0.9),
+                      (dataMax: number) => Math.ceil(dataMax * 1.1)
+                    ]}
+                    tickFormatter={(value) => value.toFixed(1)}
+                  />
+                  <ZAxis 
+                    dataKey="z" 
+                    range={[60, 400]} 
+                    name="Size" 
+                  />
+                  <Tooltip 
+                    formatter={(value: number, name: string) => {
+                      if (name === "Size") return [`${value}`, "Size"];
+                      return [`${value} ${selectedMetricInfo?.unit || ''}`, selectedData.metricName];
+                    }}
+                    cursor={{ strokeDasharray: '3 3' }}
+                  />
+                  <Scatter 
+                    name={selectedData.metricName} 
+                    data={prepareBubbleData(selectedData.data)} 
+                    fill={getLineColor(selectedMetric)}
+                  />
+                </ScatterChart>
+              )}
+
+              {chartType === 'composed' && (
+                <ComposedChart
+                  data={selectedData.data}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(value) => {
+                      const date = new Date(value);
+                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+                    }}
+                  />
+                  <YAxis
+                    domain={[
+                      (dataMin: number) => Math.floor(dataMin * 0.9),
+                      (dataMax: number) => Math.ceil(dataMax * 1.1)
+                    ]}
+                    tickFormatter={(value) => value.toFixed(1)}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      `${value} ${selectedMetricInfo?.unit || ''}`,
+                      selectedData.metricName
+                    ]}
+                    labelFormatter={(label) => {
+                      const date = new Date(label);
+                      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="value" fill={COLORS[1]} name="Monthly Value" barSize={20} />
+                  <Line type="monotone" dataKey="value" stroke={COLORS[0]} name="Trend" />
+                </ComposedChart>
+              )}
             </ResponsiveContainer>
           </div>
         )}
