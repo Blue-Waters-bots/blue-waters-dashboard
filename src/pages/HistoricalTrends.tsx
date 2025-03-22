@@ -73,12 +73,12 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell, data) => {
-            const status = String(cell.raw).toUpperCase();
+          fillColor: function(cell) {
+            const status = String(cell.raw || '').toUpperCase();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          },
+          } as any,
           textColor: [255, 255, 255]
         }
       },

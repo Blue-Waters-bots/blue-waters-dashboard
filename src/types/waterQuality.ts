@@ -54,3 +54,7 @@ declare module '@/index.css' {
     '--water-blue': string;
   }
 }
+
+// Add alias type for HistoricalDataReport component
+export type HistoricalMetricData = HistoricalData;
+export type WaterSourceMetric = WaterQualityMetric;

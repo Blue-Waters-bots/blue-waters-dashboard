@@ -35,7 +35,7 @@ const MapView: React.FC<MapViewProps> = ({ selectedSource }) => {
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/outdoors-v12',
-        center: locationCoordinates[selectedSource.name] || [25.9, -24.6], // Default to Botswana
+        center: locationCoordinates[selectedSource.name] || [25.9, -24.6] as [number, number], // Default to Botswana
         zoom: 10,
       });
 
@@ -49,9 +49,9 @@ const MapView: React.FC<MapViewProps> = ({ selectedSource }) => {
     // Update marker when source changes
     if (map.current) {
       // Get coordinates - handle the case where the source name doesn't exist in our coordinates map
-      const coordinates = selectedSource.name && locationCoordinates[selectedSource.name] 
+      const coordinates = (selectedSource && selectedSource.name && locationCoordinates[selectedSource.name]) 
         ? locationCoordinates[selectedSource.name] 
-        : [25.9, -24.6]; // Default coordinates
+        : [25.9, -24.6] as [number, number]; // Default coordinates
       
       // Remove existing marker if it exists
       if (marker.current) {

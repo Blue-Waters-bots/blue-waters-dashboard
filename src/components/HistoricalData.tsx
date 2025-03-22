@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
 import { 
@@ -6,8 +7,15 @@ import {
   AreaChart, Area, ComposedChart, Legend
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { Download, BarChart as BarChartIcon, PieChart as PieChartIcon, LineChart as LineChartIcon, 
-  AreaChart as AreaChartIcon, Combine, CircleDot } from "lucide-react";
+import { 
+  Download, 
+  BarChart as BarChartIcon, 
+  PieChart as PieChartIcon, 
+  LineChart as LineChartIcon, 
+  AreaChart as AreaChartIcon, 
+  Combine, 
+  CircleDot 
+} from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -152,11 +160,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         3: { 
           fontStyle: 'bold',
           fillColor: function(cell) {
-            const status = cell.raw.toString();
+            const status = cell.raw?.toString() || '';
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          },
+          } as any,
           textColor: [255, 255, 255]
         }
       },
@@ -570,4 +578,3 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
 };
 
 export default HistoricalData;
-
