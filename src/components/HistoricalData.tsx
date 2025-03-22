@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
 import { 
@@ -12,7 +13,12 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
-import { getStatusColor, addPdfFooter, createMetricsTableData } from "@/utils/pdfUtils";
+import { 
+  getStatusColor, 
+  addPdfFooter, 
+  createMetricsTableData,
+  castDocToPDFWithAutoTable 
+} from "@/utils/pdfUtils";
 
 interface HistoricalDataProps {
   historicalData: HistoricalDataType[];
@@ -140,17 +146,20 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell) => {
+          fillColor: function(cell) {
             const status = cell.raw.toString();
             return getStatusColor(status);
           },
-          textColor: [255, 255, 255]
+          textColor: [255, 255, 255] // White text for status column
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    const currentY = doc.lastAutoTable.finalY + 15;
+    // Cast doc to jsPDFWithAutoTable
+    const docWithAutoTable = castDocToPDFWithAutoTable(doc);
+    
+    const currentY = docWithAutoTable.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Historical Trends Data", 14, currentY);
@@ -181,10 +190,12 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         alternateRowStyles: { fillColor: [240, 240, 240] }
       });
       
-      lastY = doc.lastAutoTable.finalY + 10;
+      // Update lastY using the casted document
+      lastY = castDocToPDFWithAutoTable(doc).lastAutoTable.finalY + 10;
     });
     
-    addPdfFooter(doc, 'Water Quality Monitoring System | Historical Data Report');
+    // Add footer
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Historical Data Report');
     
     doc.save(`water_quality_historical_report_${currentDate.replace(/\//g, "-")}.pdf`);
     
@@ -539,4 +550,3 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
 };
 
 export default HistoricalData;
-

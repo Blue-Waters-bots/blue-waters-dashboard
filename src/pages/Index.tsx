@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
@@ -9,7 +10,12 @@ import { FileText, Droplet, MapPin } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getStatusColor, addPdfFooter, createMetricsTableData } from "@/utils/pdfUtils";
+import { 
+  getStatusColor, 
+  addPdfFooter, 
+  createMetricsTableData,
+  castDocToPDFWithAutoTable 
+} from "@/utils/pdfUtils";
 
 const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
@@ -87,19 +93,22 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell) => {
+          fillColor: function(cell) {
             const status = cell.raw.toString();
             return getStatusColor(status);
           },
-          textColor: [255, 255, 255]
+          textColor: [255, 255, 255] // White text for visibility
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
+    // Cast doc to jsPDFWithAutoTable
+    const docWithAutoTable = castDocToPDFWithAutoTable(doc);
+    
     // Add health risks section if any
     if (selectedSource.diseases && selectedSource.diseases.length > 0) {
-      const currentY = doc.lastAutoTable.finalY + 15;
+      const currentY = docWithAutoTable.lastAutoTable.finalY + 15;
       doc.setFontSize(14);
       doc.setFont("helvetica", "bold");
       doc.text("Potential Health Risks", 14, currentY);
@@ -123,13 +132,13 @@ const Index = () => {
         columnStyles: {
           2: { 
             fontStyle: 'bold',
-            fillColor: (cell) => {
+            fillColor: function(cell) {
               const risk = cell.raw.toString().toLowerCase();
               if (risk === 'low') return [46, 204, 113];
               if (risk === 'medium') return [241, 196, 15];
               return [231, 76, 60];
             },
-            textColor: [255, 255, 255]
+            textColor: [255, 255, 255] // White text for visibility
           }
         },
         alternateRowStyles: { fillColor: [240, 240, 240] }
@@ -137,7 +146,7 @@ const Index = () => {
     }
     
     // Add footer
-    addPdfFooter(doc, 'Water Quality Monitoring System | Confidential Report');
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Confidential Report');
     
     // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);

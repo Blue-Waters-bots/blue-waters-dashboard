@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import HistoricalData from "@/components/HistoricalData";
@@ -7,7 +8,12 @@ import { FileText } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
-import { getStatusColor, addPdfFooter, createMetricsTableData } from "@/utils/pdfUtils";
+import { 
+  getStatusColor, 
+  addPdfFooter, 
+  createMetricsTableData, 
+  castDocToPDFWithAutoTable 
+} from "@/utils/pdfUtils";
 
 const HistoricalTrends = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
@@ -59,18 +65,21 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell) => {
+          fillColor: function(cell) {
             const status = cell.raw.toString();
             return getStatusColor(status);
           },
-          textColor: [255, 255, 255]
+          textColor: [255, 255, 255] // White text for good contrast
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
+    // Cast doc to jsPDFWithAutoTable to access lastAutoTable
+    const docWithAutoTable = castDocToPDFWithAutoTable(doc);
+    
     // Add historical data section
-    const currentY = doc.lastAutoTable.finalY + 15;
+    const currentY = docWithAutoTable.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Historical Trends Data", 14, currentY);
@@ -103,12 +112,13 @@ const HistoricalTrends = () => {
           alternateRowStyles: { fillColor: [240, 240, 240] }
         });
         
-        lastY = doc.lastAutoTable.finalY + 10;
+        // Update lastY using the casted document
+        lastY = castDocToPDFWithAutoTable(doc).lastAutoTable.finalY + 10;
       }
     });
     
     // Add footer
-    addPdfFooter(doc, 'Water Quality Monitoring System | Confidential Report');
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Confidential Report');
     
     // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);

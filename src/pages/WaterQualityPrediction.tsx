@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import QualityPredictor from "@/components/QualityPredictor";
@@ -7,7 +8,13 @@ import { AlertTriangle, FileText } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { getStatusColor, getScoreColor, addPdfFooter, createMetricsTableData } from "@/utils/pdfUtils";
+import { 
+  getStatusColor, 
+  getScoreColor, 
+  addPdfFooter, 
+  createMetricsTableData,
+  castDocToPDFWithAutoTable 
+} from "@/utils/pdfUtils";
 
 const WaterQualityPrediction = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
@@ -91,8 +98,11 @@ const WaterQualityPrediction = () => {
       }
     });
     
+    // Cast to jsPDFWithAutoTable to access lastAutoTable
+    const docWithAutoTable = castDocToPDFWithAutoTable(doc);
+    
     // Add improvement steps section
-    const currentY = doc.lastAutoTable.finalY + 15;
+    const currentY = docWithAutoTable.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Recommended Improvement Steps", 14, currentY);
@@ -117,7 +127,7 @@ const WaterQualityPrediction = () => {
     });
     
     // Add 7-day forecast section
-    const forecastY = doc.lastAutoTable.finalY + 15;
+    const forecastY = docWithAutoTable.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("7-Day Quality Forecast", 14, forecastY);
@@ -152,18 +162,18 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         2: { 
           fontStyle: 'bold',
-          fillColor: (cell, row) => {
+          fillColor: function(cell, row) {
             const score = parseFloat(row.cells[1].raw as string);
             return getScoreColor(score);
           },
-          textColor: [255, 255, 255]
+          textColor: [255, 255, 255] // White text for visibility
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
     // Add current water quality metrics table
-    const metricsY = doc.lastAutoTable.finalY + 15;
+    const metricsY = docWithAutoTable.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Current Water Quality Metrics", 14, metricsY);
@@ -184,18 +194,18 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell) => {
+          fillColor: function(cell) {
             const status = cell.raw.toString();
             return getStatusColor(status);
           },
-          textColor: [255, 255, 255]
+          textColor: [255, 255, 255] // White text for visibility
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
     // Add footer to all pages
-    addPdfFooter(doc, 'Water Quality Monitoring System | Forecast Report');
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Forecast Report');
     
     // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_forecast_report.pdf`);
