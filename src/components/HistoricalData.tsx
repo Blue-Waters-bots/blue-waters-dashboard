@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
 import { 
@@ -120,9 +121,18 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     doc.setFontSize(10);
     doc.text(`Generated: ${currentDate}`, 14, 50);
     
+    // Add company contact information
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Blue Group Solutions (Pty) Ltd", 14, 60);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Gaborone, Botswana", 14, 66);
+    doc.text("Phone: +267 76953391 | Email: admin@bluegroupbw.com", 14, 72);
+    
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, 60);
+    doc.text("Current Water Quality Metrics", 14, 84);
     
     const metricsBody = metrics.map(metric => [
       metric.name,
@@ -132,7 +142,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     ]);
     
     autoTable(doc, {
-      startY: 64,
+      startY: 88,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
       headStyles: { 
@@ -144,13 +154,13 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell, row) => {
+          fillColor: (cell) => {
             const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
           },
-          textColor: [255, 255, 255]
+          textColor: [255, 255, 255] // Ensuring text is white for better visibility against colored backgrounds
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
@@ -190,6 +200,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       lastY = doc.lastAutoTable.finalY + 10;
     });
     
+    // Add footer with company info
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
@@ -198,15 +209,21 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       const pageSize = doc.internal.pageSize;
       const pageHeight = pageSize.getHeight();
       doc.text(
-        'Water Quality Monitoring System | Historical Data Report',
+        'Blue Group Solutions (Pty) Ltd | Water Quality Monitoring System',
         pageSize.getWidth() / 2,
-        pageHeight - 10,
+        pageHeight - 15,
         { align: 'center' }
       );
       doc.text(
         `Page ${i} of ${pageCount}`,
         pageSize.getWidth() - 20,
         pageHeight - 10
+      );
+      doc.text(
+        'admin@bluegroupbw.com | +267 76953391',
+        pageSize.getWidth() / 2,
+        pageHeight - 10,
+        { align: 'center' }
       );
     }
     
@@ -269,8 +286,8 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         
         {selectedData && (
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              {chartType === 'line' && (
+            {chartType === 'line' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -309,9 +326,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     activeDot={{ r: 6 }}
                   />
                 </LineChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'bar' && (
+            {chartType === 'bar' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -347,9 +366,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'area' && (
+            {chartType === 'area' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -387,9 +408,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fillOpacity={0.3}
                   />
                 </AreaChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'pie' && (
+            {chartType === 'pie' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={preparePieData(selectedData.data)}
@@ -413,9 +436,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     ]}
                   />
                 </PieChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'scatter' && (
+            {chartType === 'scatter' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -451,9 +476,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fill={getLineColor(selectedMetric)}
                   />
                 </ScatterChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'bubble' && (
+            {chartType === 'bubble' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                 >
@@ -495,9 +522,11 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                     fill={getLineColor(selectedMetric)}
                   />
                 </ScatterChart>
-              )}
+              </ResponsiveContainer>
+            )}
 
-              {chartType === 'composed' && (
+            {chartType === 'composed' && (
+              <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={selectedData.data}
                   margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
@@ -531,8 +560,8 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
                   <Bar dataKey="value" fill={COLORS[1]} name="Monthly Value" barSize={20} />
                   <Line type="monotone" dataKey="value" stroke={COLORS[0]} name="Trend" />
                 </ComposedChart>
-              )}
-            </ResponsiveContainer>
+              </ResponsiveContainer>
+            )}
           </div>
         )}
         
