@@ -11,6 +11,22 @@ import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+// Add declaration to fix missing type
+declare module "jspdf" {
+  interface jsPDF {
+    lastAutoTable: {
+      finalY: number;
+    };
+    internal: {
+      pageSize: {
+        getWidth: () => number;
+        getHeight: () => number;
+      };
+      getNumberOfPages: () => number;
+    };
+  }
+}
+
 const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
@@ -101,12 +117,13 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell) => {
+          // Fix type error by casting to correct type
+          fillColor: function(cell) {
             const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          },
+          } as unknown as [number, number, number],
           textColor: [255, 255, 255] // Use white text for better visibility
         }
       },
@@ -139,12 +156,13 @@ const Index = () => {
         columnStyles: {
           2: { 
             fontStyle: 'bold',
-            fillColor: (cell) => {
+            // Fix type error by casting to correct type
+            fillColor: function(cell) {
               const risk = cell.raw.toString().toLowerCase();
               if (risk === 'low') return [46, 204, 113];
               if (risk === 'medium') return [241, 196, 15];
               return [231, 76, 60];
-            },
+            } as unknown as [number, number, number],
             textColor: [255, 255, 255] // Use white text for better visibility
           }
         },

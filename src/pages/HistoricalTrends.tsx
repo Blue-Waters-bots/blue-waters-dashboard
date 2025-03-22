@@ -9,6 +9,22 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 
+// Add declaration to fix missing type
+declare module "jspdf" {
+  interface jsPDF {
+    lastAutoTable: {
+      finalY: number;
+    };
+    internal: {
+      pageSize: {
+        getWidth: () => number;
+        getHeight: () => number;
+      };
+      getNumberOfPages: () => number;
+    };
+  }
+}
+
 const HistoricalTrends = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
@@ -73,12 +89,13 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell) => {
+          // Fix type error by casting to correct type
+          fillColor: function(cell) {
             const status = cell.raw.toString();
             if (status === 'SAFE') return [46, 204, 113];
             if (status === 'WARNING') return [241, 196, 15];
             return [231, 76, 60];
-          },
+          } as unknown as [number, number, number],
           textColor: [255, 255, 255] // Use white text for better visibility
         }
       },
