@@ -1,13 +1,13 @@
-
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import QualityPredictor from "@/components/QualityPredictor";
 import { qualityPredictions, waterSources } from "@/data/waterQualityData";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
-import { AlertTriangle, FileText, Download } from "lucide-react";
+import { AlertTriangle, FileText } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { getStatusColor, getScoreColor, addPdfFooter, createMetricsTableData } from "@/utils/pdfUtils";
 
 const WaterQualityPrediction = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
@@ -65,13 +65,6 @@ const WaterQualityPrediction = () => {
     doc.text("Prediction Summary", 14, 84);
     
     // Create prediction summary table
-    const getScoreColor = (score: number) => {
-      if (score >= 80) return [16, 185, 129]; // safe/good
-      if (score >= 60) return [59, 130, 246]; // blue/moderate
-      if (score >= 40) return [245, 158, 11]; // warning
-      return [239, 68, 68]; // danger
-    };
-    
     autoTable(doc, {
       startY: 88,
       head: [['Quality Score', 'Status', 'Description']],
@@ -89,7 +82,7 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         0: { 
           fontStyle: 'bold',
-          fillColor: getScoreColor(prediction.score) as any,
+          fillColor: getScoreColor(prediction.score),
           textColor: [255, 255, 255]
         },
         1: {
@@ -99,7 +92,7 @@ const WaterQualityPrediction = () => {
     });
     
     // Add improvement steps section
-    const currentY = (doc.lastAutoTable?.finalY || 88) + 15;
+    const currentY = doc.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Recommended Improvement Steps", 14, currentY);
@@ -124,7 +117,7 @@ const WaterQualityPrediction = () => {
     });
     
     // Add 7-day forecast section
-    const forecastY = (doc.lastAutoTable?.finalY || currentY + 20) + 15;
+    const forecastY = doc.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("7-Day Quality Forecast", 14, forecastY);
@@ -161,7 +154,7 @@ const WaterQualityPrediction = () => {
           fontStyle: 'bold',
           fillColor: (cell, row) => {
             const score = parseFloat(row.cells[1].raw as string);
-            return getScoreColor(score) as any;
+            return getScoreColor(score);
           },
           textColor: [255, 255, 255]
         }
@@ -170,18 +163,13 @@ const WaterQualityPrediction = () => {
     });
     
     // Add current water quality metrics table
-    const metricsY = (doc.lastAutoTable?.finalY || forecastY + 20) + 15;
+    const metricsY = doc.lastAutoTable.finalY + 15;
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Current Water Quality Metrics", 14, metricsY);
     
     // Create table data for current metrics
-    const metricsBody = selectedSource.metrics.map(metric => [
-      metric.name,
-      `${metric.value} ${metric.unit}`,
-      `${metric.safeRange[0]}-${metric.safeRange[1]} ${metric.unit}`,
-      metric.status.toUpperCase()
-    ]);
+    const metricsBody = createMetricsTableData(selectedSource.metrics);
     
     autoTable(doc, {
       startY: metricsY + 4,
@@ -198,9 +186,7 @@ const WaterQualityPrediction = () => {
           fontStyle: 'bold',
           fillColor: (cell) => {
             const status = cell.raw.toString();
-            if (status === 'SAFE') return [46, 204, 113] as any;
-            if (status === 'WARNING') return [241, 196, 15] as any;
-            return [231, 76, 60] as any;
+            return getStatusColor(status);
           },
           textColor: [255, 255, 255]
         }
@@ -209,25 +195,7 @@ const WaterQualityPrediction = () => {
     });
     
     // Add footer to all pages
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      const pageSize = doc.internal.pageSize;
-      const pageHeight = pageSize.getHeight();
-      doc.text(
-        'Water Quality Monitoring System | Forecast Report',
-        pageSize.getWidth() / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
-      doc.text(
-        `Page ${i} of ${pageCount}`,
-        pageSize.getWidth() - 20,
-        pageHeight - 10
-      );
-    }
+    addPdfFooter(doc, 'Water Quality Monitoring System | Forecast Report');
     
     // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_forecast_report.pdf`);

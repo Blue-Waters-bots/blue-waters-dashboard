@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
@@ -10,6 +9,7 @@ import { FileText, Droplet, MapPin } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { getStatusColor, addPdfFooter, createMetricsTableData } from "@/utils/pdfUtils";
 
 const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
@@ -72,12 +72,7 @@ const Index = () => {
     doc.text("Current Water Quality Metrics", 14, 90);
     
     // Create table data for current metrics
-    const metricsBody = selectedSource.metrics.map(metric => [
-      metric.name,
-      `${metric.value} ${metric.unit}`,
-      `${metric.safeRange[0]}-${metric.safeRange[1]} ${metric.unit}`,
-      metric.status.toUpperCase()
-    ]);
+    const metricsBody = createMetricsTableData(selectedSource.metrics);
     
     autoTable(doc, {
       startY: 94,
@@ -92,11 +87,9 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell, row) => {
+          fillColor: (cell) => {
             const status = cell.raw.toString();
-            if (status === 'SAFE') return [46, 204, 113];
-            if (status === 'WARNING') return [241, 196, 15];
-            return [231, 76, 60];
+            return getStatusColor(status);
           },
           textColor: [255, 255, 255]
         }
@@ -130,7 +123,7 @@ const Index = () => {
         columnStyles: {
           2: { 
             fontStyle: 'bold',
-            fillColor: (cell, row) => {
+            fillColor: (cell) => {
               const risk = cell.raw.toString().toLowerCase();
               if (risk === 'low') return [46, 204, 113];
               if (risk === 'medium') return [241, 196, 15];
@@ -144,25 +137,7 @@ const Index = () => {
     }
     
     // Add footer
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      const pageSize = doc.internal.pageSize;
-      const pageHeight = pageSize.getHeight();
-      doc.text(
-        'Water Quality Monitoring System | Confidential Report',
-        pageSize.getWidth() / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
-      doc.text(
-        `Page ${i} of ${pageCount}`,
-        pageSize.getWidth() - 20,
-        pageHeight - 10
-      );
-    }
+    addPdfFooter(doc, 'Water Quality Monitoring System | Confidential Report');
     
     // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);

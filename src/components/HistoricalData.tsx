@@ -12,6 +12,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
+import { getStatusColor, addPdfFooter, createMetricsTableData } from "@/utils/pdfUtils";
 
 interface HistoricalDataProps {
   historicalData: HistoricalDataType[];
@@ -124,12 +125,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     doc.setFont("helvetica", "bold");
     doc.text("Current Water Quality Metrics", 14, 60);
     
-    const metricsBody = metrics.map(metric => [
-      metric.name,
-      `${metric.value} ${metric.unit}`,
-      `${metric.safeRange[0]}-${metric.safeRange[1]} ${metric.unit}`,
-      metric.status.toUpperCase()
-    ]);
+    const metricsBody = createMetricsTableData(metrics);
     
     autoTable(doc, {
       startY: 64,
@@ -144,11 +140,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: (cell, row) => {
+          fillColor: (cell) => {
             const status = cell.raw.toString();
-            if (status === 'SAFE') return [46, 204, 113];
-            if (status === 'WARNING') return [241, 196, 15];
-            return [231, 76, 60];
+            return getStatusColor(status);
           },
           textColor: [255, 255, 255]
         }
@@ -190,25 +184,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       lastY = doc.lastAutoTable.finalY + 10;
     });
     
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      const pageSize = doc.internal.pageSize;
-      const pageHeight = pageSize.getHeight();
-      doc.text(
-        'Water Quality Monitoring System | Historical Data Report',
-        pageSize.getWidth() / 2,
-        pageHeight - 10,
-        { align: 'center' }
-      );
-      doc.text(
-        `Page ${i} of ${pageCount}`,
-        pageSize.getWidth() - 20,
-        pageHeight - 10
-      );
-    }
+    addPdfFooter(doc, 'Water Quality Monitoring System | Historical Data Report');
     
     doc.save(`water_quality_historical_report_${currentDate.replace(/\//g, "-")}.pdf`);
     
@@ -563,3 +539,4 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
 };
 
 export default HistoricalData;
+
