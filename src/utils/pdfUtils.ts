@@ -4,21 +4,19 @@ import autoTable from "jspdf-autotable";
 import { WaterQualityMetric } from "@/types/waterQuality";
 
 // Extend the jsPDF type to include the properties from autoTable
-declare module "jspdf" {
-  interface jsPDF {
-    lastAutoTable: {
-      finalY: number;
+interface jsPDFWithAutoTable extends jsPDF {
+  lastAutoTable: {
+    finalY: number;
+  };
+  internal: {
+    pageSize: {
+      width: number;
+      height: number;
+      getWidth: () => number;
+      getHeight: () => number;
     };
-    internal: {
-      pageSize: {
-        width: number;
-        height: number;
-        getWidth: () => number;
-        getHeight: () => number;
-      };
-      getNumberOfPages: () => number;
-    };
-  }
+    getNumberOfPages: () => number;
+  };
 }
 
 // Type-safe function to get color for statuses
@@ -37,7 +35,7 @@ export const getScoreColor = (score: number): [number, number, number] => {
 };
 
 // Helper function for creating PDF footer
-export const addPdfFooter = (doc: jsPDF, footerText: string) => {
+export const addPdfFooter = (doc: jsPDFWithAutoTable, footerText: string) => {
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
@@ -68,3 +66,4 @@ export const createMetricsTableData = (metrics: WaterQualityMetric[]) => {
     metric.status.toUpperCase()
   ]);
 };
+
