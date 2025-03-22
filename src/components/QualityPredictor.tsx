@@ -52,19 +52,19 @@ const QualityPredictor = ({ prediction }: QualityPredictorProps) => {
         return (
           <LineChart 
             data={forecastData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+            margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
           >
             <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
             <XAxis 
               dataKey="day" 
-              tick={{ fill: '#888', fontSize: 12 }} 
+              tick={{ fill: '#888', fontSize: 11 }} 
               axisLine={{ stroke: '#ddd' }} 
             />
             <YAxis 
               domain={[0, 100]} 
-              tick={{ fill: '#888', fontSize: 12 }} 
+              tick={{ fill: '#888', fontSize: 11 }} 
               axisLine={{ stroke: '#ddd' }}
-              label={{ value: 'Quality Score', angle: -90, position: 'insideLeft', fill: '#888', fontSize: 12 }}
+              label={{ value: 'Quality Score', angle: -90, position: 'insideLeft', fill: '#888', fontSize: 11 }}
             />
             <ChartTooltip 
               content={
@@ -82,9 +82,9 @@ const QualityPredictor = ({ prediction }: QualityPredictorProps) => {
               type="monotone" 
               dataKey="score" 
               stroke={`var(--color-quality)`}
-              strokeWidth={3}
-              dot={{ r: 6, fill: `var(--color-quality)`, strokeWidth: 2, stroke: "#fff" }}
-              activeDot={{ r: 8, strokeWidth: 0 }}
+              strokeWidth={2}
+              dot={{ r: 4, fill: `var(--color-quality)`, strokeWidth: 2, stroke: "#fff" }}
+              activeDot={{ r: 6, strokeWidth: 0 }}
               animationDuration={1500}
             />
           </LineChart>
@@ -93,19 +93,19 @@ const QualityPredictor = ({ prediction }: QualityPredictorProps) => {
         return (
           <BarChart
             data={forecastData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+            margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
           >
             <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
             <XAxis 
               dataKey="day" 
-              tick={{ fill: '#888', fontSize: 12 }} 
+              tick={{ fill: '#888', fontSize: 11 }} 
               axisLine={{ stroke: '#ddd' }} 
             />
             <YAxis 
               domain={[0, 100]} 
-              tick={{ fill: '#888', fontSize: 12 }} 
+              tick={{ fill: '#888', fontSize: 11 }} 
               axisLine={{ stroke: '#ddd' }}
-              label={{ value: 'Quality Score', angle: -90, position: 'insideLeft', fill: '#888', fontSize: 12 }}
+              label={{ value: 'Quality Score', angle: -90, position: 'insideLeft', fill: '#888', fontSize: 11 }}
             />
             <ChartTooltip 
               content={
@@ -131,19 +131,19 @@ const QualityPredictor = ({ prediction }: QualityPredictorProps) => {
         return (
           <AreaChart
             data={forecastData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
+            margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
           >
             <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
             <XAxis 
               dataKey="day" 
-              tick={{ fill: '#888', fontSize: 12 }} 
+              tick={{ fill: '#888', fontSize: 11 }} 
               axisLine={{ stroke: '#ddd' }} 
             />
             <YAxis 
               domain={[0, 100]} 
-              tick={{ fill: '#888', fontSize: 12 }} 
+              tick={{ fill: '#888', fontSize: 11 }} 
               axisLine={{ stroke: '#ddd' }}
-              label={{ value: 'Quality Score', angle: -90, position: 'insideLeft', fill: '#888', fontSize: 12 }}
+              label={{ value: 'Quality Score', angle: -90, position: 'insideLeft', fill: '#888', fontSize: 11 }}
             />
             <ChartTooltip 
               content={
@@ -256,7 +256,7 @@ const QualityPredictor = ({ prediction }: QualityPredictorProps) => {
           </div>
         </div>
 
-        <div className="h-[400px] w-full">
+        <div className="h-[300px] w-full">
           <ChartContainer 
             config={{
               quality: {
