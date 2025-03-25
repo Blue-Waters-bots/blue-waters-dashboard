@@ -6,6 +6,11 @@ import { WaterQualityMetric } from "@/types/waterQuality";
 // Define a type for the fillColor function that JsPdf-AutoTable accepts
 export type CellStyleFunction = (cell: any, data?: any) => [number, number, number];
 
+// Convert RGB array to proper CSS RGB format for various uses
+export const convertToTableColor = (rgbArray: [number, number, number]): string => {
+  return `rgb(${rgbArray[0]}, ${rgbArray[1]}, ${rgbArray[2]})`;
+};
+
 // Cast jsPDF to include autoTable properties for proper typescript support
 export const castDocToPDFWithAutoTable = (doc: jsPDF) => {
   return doc as unknown as jsPDF & {
@@ -13,7 +18,32 @@ export const castDocToPDFWithAutoTable = (doc: jsPDF) => {
     lastAutoTable: {
       finalY: number;
     };
+    internal: {
+      getNumberOfPages: () => number;
+      pageSize: {
+        getWidth: () => number;
+        getHeight: () => number;
+      }
+    }
   };
+};
+
+// Get score color based on quality score
+export const getScoreColor = (score: number): [number, number, number] => {
+  if (score >= 80) return [46, 204, 113]; // Green
+  if (score >= 60) return [52, 152, 219]; // Blue
+  if (score >= 40) return [241, 196, 15]; // Yellow
+  return [231, 76, 60]; // Red
+};
+
+// Get score color for table cell
+export const getScoreColorForCell = (cell: any, row?: any): [number, number, number] => {
+  if (!cell || !cell.raw) {
+    return [220, 220, 220]; // Default gray
+  }
+  
+  const score = parseFloat(cell.raw.toString());
+  return getScoreColor(score);
 };
 
 // Get status color for table cell
@@ -36,7 +66,8 @@ export const getStatusColorForCell = (cell: any): [number, number, number] => {
 
 // Add a footer to the PDF document
 export const addPdfFooter = (doc: jsPDF & { autoTable: typeof autoTable, lastAutoTable: { finalY: number } }, text: string) => {
-  const pageCount = doc.internal.getNumberOfPages();
+  const docWithPages = castDocToPDFWithAutoTable(doc);
+  const pageCount = docWithPages.internal.getNumberOfPages();
   doc.setFontSize(8);
   doc.setTextColor(150);
   
