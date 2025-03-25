@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   LineChart,
@@ -14,6 +15,8 @@ import autoTable from "jspdf-autotable";
 import { addPdfFooter, castDocToPDFWithAutoTable, getStatusColorForCell } from "@/utils/pdfUtils";
 import { toast } from "@/components/ui/use-toast";
 import { FileText } from "lucide-react";
+import Sidebar from "@/components/Sidebar";
+import PageHeader from "@/components/PageHeader";
 
 interface HistoricalData {
   month: string;
@@ -107,76 +110,82 @@ const HistoricalTrends = () => {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-semibold mb-6 text-center">Historical Water Quality Trends</h1>
+    <div className="min-h-screen w-full flex">
+      <Sidebar />
+      <div className="flex-1 overflow-y-auto p-8">
+        <div className="max-w-5xl mx-auto">
+          <PageHeader
+            title="Historical Water Quality Trends"
+            description="View historical data and trends to understand long-term water quality changes."
+            actions={
+              <button
+                onClick={generateHistoricalPDF}
+                className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
+              >
+                <FileText size={16} />
+                <span>Download Report</span>
+              </button>
+            }
+          />
 
-      <div className="mb-8 flex justify-between items-center">
-        <p className="text-muted-foreground">View historical data and trends to understand long-term water quality changes.</p>
-        <button
-          onClick={generateHistoricalPDF}
-          className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
-        >
-          <FileText size={16} />
-          <span>Download Report</span>
-        </button>
-      </div>
+          <div className="glass-panel rounded-xl p-6 shadow-card mt-8">
+            <ResponsiveContainer width="100%" height={500}>
+              <LineChart
+                data={data}
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: 20,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="averageValue" stroke="#8884d8" activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
 
-      <div className="glass-panel rounded-xl p-6 shadow-card">
-        <ResponsiveContainer width="100%" height={500}>
-          <LineChart
-            data={data}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="averageValue" stroke="#8884d8" activeDot={{ r: 8 }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      <div className="mt-6 glass-panel rounded-xl p-6 shadow-card">
-        <h2 className="text-xl font-semibold mb-4">Historical Data Table</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Month
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Average Value
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Anomalies
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.month}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.averageValue}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.anomalies}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800`}>
-                      {item.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="mt-6 glass-panel rounded-xl p-6 shadow-card">
+            <h2 className="text-xl font-semibold mb-4">Historical Data Table</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Month
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Average Value
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Anomalies
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {data.map((item, index) => (
+                    <tr key={index}>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.month}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.averageValue}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.anomalies}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800`}>
+                          {item.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
