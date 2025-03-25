@@ -15,8 +15,6 @@ import autoTable from "jspdf-autotable";
 import { addPdfFooter, castDocToPDFWithAutoTable, getStatusColorForCell } from "@/utils/pdfUtils";
 import { toast } from "@/components/ui/use-toast";
 import { FileText } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
-import PageHeader from "@/components/PageHeader";
 
 interface HistoricalData {
   month: string;
@@ -110,82 +108,91 @@ const HistoricalTrends = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex">
-      <Sidebar />
-      <div className="flex-1 overflow-y-auto p-8">
-        <div className="max-w-5xl mx-auto">
-          <PageHeader
-            title="Historical Water Quality Trends"
-            description="View historical data and trends to understand long-term water quality changes."
-            actions={
-              <button
-                onClick={generateHistoricalPDF}
-                className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
-              >
-                <FileText size={16} />
-                <span>Download Report</span>
-              </button>
-            }
-          />
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-blue-800">Historical Water Quality Trends</h1>
+          <p className="text-gray-600 mt-2">
+            View historical data and trends to understand long-term water quality changes.
+          </p>
+        </div>
+        <button 
+          onClick={generateHistoricalPDF}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+        >
+          <FileText size={16} />
+          <span>Download Report</span>
+        </button>
+      </div>
 
-          <div className="glass-panel rounded-xl p-6 shadow-card mt-8">
-            <ResponsiveContainer width="100%" height={500}>
-              <LineChart
-                data={data}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="averageValue" stroke="#8884d8" activeDot={{ r: 8 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Monthly Water Quality Trends</h2>
+        <div className="h-96">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={data}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="averageValue" 
+                stroke="#3182ce" 
+                activeDot={{ r: 8 }} 
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-          <div className="mt-6 glass-panel rounded-xl p-6 shadow-card">
-            <h2 className="text-xl font-semibold mb-4">Historical Data Table</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Month
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Average Value
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Anomalies
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {data.map((item, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.month}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.averageValue}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.anomalies}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800`}>
-                          {item.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Historical Data Table</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Month
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Average Value
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Anomalies
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {data.map((item, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.month}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.averageValue}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.anomalies}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <span 
+                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        item.status === 'safe' 
+                          ? 'bg-green-100 text-green-800' 
+                          : item.status === 'warning'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
