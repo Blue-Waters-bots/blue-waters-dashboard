@@ -1,19 +1,6 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import Sidebar from "@/components/Sidebar";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler,
-  registerables
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import { faker } from '@faker-js/faker';
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import jsPDF from 'jspdf';
@@ -26,59 +13,12 @@ import {
   Color
 } from "@/utils/pdfUtils";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
-ChartJS.register(...registerables);
-
 const WaterQualityPrediction = () => {
-  const [chartData, setChartData] = useState({ labels: [], datasets: [] });
-
-  useEffect(() => {
-    // Generate dummy data for the chart
-    const labels = Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`);
-    const generateDataset = (label: string, color: string) => ({
-      label,
-      data: labels.map(() => faker.datatype.number({ min: 60, max: 100 })),
-      borderColor: color,
-      backgroundColor: color + '33',
-      fill: true,
-    });
-
-    setChartData({
-      labels,
-      datasets: [
-        generateDataset('Current', '#3498db'),
-        generateDataset('Predicted', '#e74c3c'),
-      ],
-    });
-  }, []);
-
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: true,
-        text: 'Water Quality Prediction',
-      },
-    },
-  };
-
   const generateComparisonData = () => {
     // Dummy data for comparison
     return Array.from({ length: 5 }, (_, i) => {
-      const currentValue = faker.datatype.number({ min: 60, max: 100 });
-      const predictedValue = currentValue + faker.datatype.number({ min: -5, max: 5 });
+      const currentValue = Math.floor(Math.random() * 40) + 60; // Random between 60-100
+      const predictedValue = currentValue + (Math.floor(Math.random() * 10) - 5); // +/- 5
       const change = predictedValue - currentValue;
       const status = change > 0 ? 'warning' : 'safe'; // Example status logic
 
@@ -185,7 +125,19 @@ const WaterQualityPrediction = () => {
           </div>
 
           <div className="glass-panel rounded-xl p-6 shadow-card">
-            <Line options={chartOptions} data={chartData} />
+            <h2 className="text-xl font-medium mb-4">Water Quality Prediction Overview</h2>
+            <p className="text-muted-foreground mb-4">
+              This panel shows predictions about water quality metrics over time. The system uses 
+              historical data to forecast future water quality trends.
+            </p>
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
+              <h3 className="font-medium text-blue-700 dark:text-blue-300 mb-2">How predictions work</h3>
+              <p className="text-sm text-blue-600 dark:text-blue-400">
+                Our AI-powered system analyzes historical trends, environmental factors, 
+                and treatment protocols to predict water quality metrics for the coming days.
+                Download the prediction report for detailed analysis.
+              </p>
+            </div>
           </div>
         </div>
       </div>
