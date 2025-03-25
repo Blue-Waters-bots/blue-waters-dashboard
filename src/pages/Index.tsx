@@ -1,14 +1,16 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
 import QualityMetrics from "@/components/QualityMetrics";
 import MapView from "@/components/MapView";
+import AlertBanner from "@/components/AlertBanner";
 import { waterSources } from "@/data/waterQualityData";
 import { FileText, Droplet, MapPin } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useAlerts } from "@/contexts/AlertContext";
 import { 
   getStatusColorForCell, 
   addPdfFooter, 
@@ -18,6 +20,12 @@ import {
 
 const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
+  const { checkSourceForAlerts } = useAlerts();
+
+  // Check for alerts whenever the selected source changes
+  useEffect(() => {
+    checkSourceForAlerts(selectedSource);
+  }, [selectedSource, checkSourceForAlerts]);
 
   const handleDownloadReport = () => {
     // Create a new PDF document
@@ -92,7 +100,7 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) {
+          fillColor: function(cell) { 
             return getStatusColorForCell(cell);
           },
           textColor: [255, 255, 255] // White text for visibility
@@ -203,6 +211,9 @@ const Index = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Alert Banner */}
+            <AlertBanner />
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <WaterSourceSelector 
