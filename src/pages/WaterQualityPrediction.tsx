@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -150,7 +151,7 @@ const WaterQualityPrediction = () => {
       head: [['Parameter', 'Input Value', 'Status']],
       body: tableData,
       headStyles: { 
-        fillColor: [41, 128, 185] as any,
+        fillColor: [41, 128, 185] as Color,
         textColor: [255, 255, 255],
         fontStyle: 'bold' 
       },
@@ -224,7 +225,7 @@ const WaterQualityPrediction = () => {
       head: [['Time Period', 'Quality Status', 'Risk Level']],
       body: comparisonData,
       headStyles: { 
-        fillColor: [41, 128, 185] as any,
+        fillColor: [41, 128, 185] as Color,
         textColor: [255, 255, 255],
         fontStyle: 'bold' 
       },
@@ -294,7 +295,7 @@ const WaterQualityPrediction = () => {
       head: [['Best Practice', 'Impact', 'Priority']],
       body: bestPracticesData,
       headStyles: { 
-        fillColor: [41, 128, 185] as any,
+        fillColor: [41, 128, 185] as Color,
         textColor: [255, 255, 255],
         fontStyle: 'bold' 
       },
