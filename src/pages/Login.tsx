@@ -59,7 +59,7 @@ const Login = () => {
       <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col items-center md:items-start justify-center">
         <div className="mb-8 flex items-center">
           <img 
-            src="/lovable-uploads/3c169f89-e8f8-44e0-aa59-62429c9be7a4.png" 
+            src="/lovable-uploads/11b20fcc-2ac8-4457-8c95-d74a46e59109.png" 
             alt="Blue Waters Logo" 
             className="h-12 mr-3" 
           />
@@ -74,13 +74,13 @@ const Login = () => {
             Development & Commercialization of IoT Based Water<br />
             Quality Monitoring Technology
           </p>
-          <p className="text-xl text-blue-700 font-semibold">
+          <p className="text-xl text-blue-600 font-semibold">
             Revolutionizing Water Industry with AI
           </p>
         </div>
         
         <img 
-          src="/lovable-uploads/3c169f89-e8f8-44e0-aa59-62429c9be7a4.png" 
+          src="/lovable-uploads/11b20fcc-2ac8-4457-8c95-d74a46e59109.png" 
           alt="Person drinking water" 
           className="hidden md:block w-3/4 max-w-md"
         />
