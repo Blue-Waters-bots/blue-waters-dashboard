@@ -1,163 +1,156 @@
-import { useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import QualityPredictor from "@/components/QualityPredictor";
-import { qualityPredictions, waterSources } from "@/data/waterQualityData";
-import WaterSourceSelector from "@/components/WaterSourceSelector";
-import { AlertTriangle, FileText } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FileText, Download } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { 
   getStatusColorForCell, 
-  getScoreColor, 
-  getScoreColorForCell,
   addPdfFooter, 
-  createMetricsTableData,
   castDocToPDFWithAutoTable,
-  convertToTableColor
+  Color,
 } from "@/utils/pdfUtils";
 
-const WaterQualityPrediction = () => {
-  const [selectedSource, setSelectedSource] = useState(waterSources[0]);
+// Constants
+const parameters = [
+  "pH", "Turbidity", "Dissolved Oxygen", "BOD", "Nitrates", "Phosphates",
+  "Chlorides", "Total Dissolved Solids", "Fecal Coliform", "Metals (Lead, Mercury)"
+];
 
-  const handleGenerateReport = () => {
-    toast({
-      title: "Generating Report",
-      description: `Creating forecast report for ${selectedSource.name}...`,
-      duration: 3000,
-    });
-    
-    generatePdfReport();
+const historicalData = [
+  { period: "Last Month", quality: "Good", risk: "Low" },
+  { period: "3 Months Ago", quality: "Warning", risk: "Moderate" },
+  { period: "6 Months Ago", quality: "Danger", risk: "High" }
+];
+
+const bestPractices = [
+  { practice: "Regular Monitoring", impact: "Safe", priority: "High" },
+  { practice: "Source Protection", impact: "Safe", priority: "High" },
+  { practice: "Treatment Optimization", impact: "Warning", priority: "Moderate" }
+];
+
+// Interfaces
+interface PredictionInput {
+  parameter: string;
+  value: number;
+}
+
+interface PredictionResult {
+  parameter: string;
+  value: number;
+  status: string;
+}
+
+interface HistoricalDataEntry {
+  period: string;
+  quality: string;
+  risk: string;
+}
+
+interface BestPracticeEntry {
+  practice: string;
+  impact: string;
+  priority: string;
+}
+
+const WaterQualityPrediction = () => {
+  const [predictionInputs, setPredictionInputs] = useState<PredictionInput[]>(
+    parameters.map(param => ({ parameter: param, value: 0 }))
+  );
+  const [predictionResults, setPredictionResults] = useState<PredictionResult[]>([]);
+  const [includeHistorical, setIncludeHistorical] = useState(true);
+  const [includeBestPractices, setIncludeBestPractices] = useState(true);
+
+  const handleInputChange = (parameter: string, value: number) => {
+    setPredictionInputs(prevInputs =>
+      prevInputs.map(input =>
+        input.parameter === parameter ? { ...input, value } : input
+      )
+    );
   };
 
-  const generatePdfReport = () => {
-    // Create a new PDF document
+  const predictWaterQuality = () => {
+    const newResults: PredictionResult[] = predictionInputs.map(input => {
+      let status = "safe";
+      if (input.value > 50) {
+        status = "warning";
+      } else if (input.value > 80) {
+        status = "danger";
+      }
+      return { ...input, status };
+    });
+    setPredictionResults(newResults);
+  };
+
+  // Type safer implementation for fillColor function
+  const getStatusFillColor = (cell: any, row: any) => {
+    // Cast the result to any to satisfy the type constraints
+    return getStatusColorForCell(cell) as any;
+  };
+
+  const generatePredictionPDF = () => {
     const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
-    const prediction = qualityPredictions[selectedSource.id];
-    
-    if (!prediction) {
-      toast({
-        title: "Error",
-        description: "Could not generate report: prediction data not found",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    
-    // Add header with title
-    doc.setFillColor(0, 102, 204); // Header background color
+
+    // Header
+    doc.setFillColor(0, 102, 204);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
-    
     doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.text("Water Quality Forecast Report", 105, 20, { align: "center" });
-    
-    // Add source information
-    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text(selectedSource.name, 14, 50);
-    
+    doc.text("Water Quality Prediction Report", 105, 20, { align: "center" });
+
+    // Report Generation Date
+    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(`Generated: ${dateGenerated}`, 14, 60);
-    doc.text(`Location: ${selectedSource.location}`, 14, 66);
-    doc.text(`Type: ${selectedSource.type}`, 14, 72);
-    
-    // Add prediction summary section
+    doc.text(`Generated: ${dateGenerated}`, 14, 50);
+
+    // Prediction Results Table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Prediction Summary", 14, 84);
-    
-    // Create prediction summary table
-    autoTable(doc, {
-      startY: 88,
-      head: [['Quality Score', 'Status', 'Description']],
-      body: [[
-        prediction.score,
-        prediction.status,
-        prediction.description
-      ]],
-      headStyles: { 
-        fillColor: [41, 128, 185],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold' 
-      },
-      bodyStyles: { fontSize: 10 },
-      columnStyles: {
-        0: { 
-          fontStyle: 'bold',
-          fillColor: function(cell, row) { 
-            return getScoreColorForCell(cell, row);
-          },
-          textColor: [255, 255, 255]
-        },
-        1: {
-          fontStyle: 'bold'
-        }
-      }
-    });
-    
-    // Cast to jsPDFWithAutoTable to access lastAutoTable
-    const docWithAutoTable = castDocToPDFWithAutoTable(doc);
-    
-    // Add improvement steps section
-    const currentY = docWithAutoTable.lastAutoTable.finalY + 15;
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Recommended Improvement Steps", 14, currentY);
-    
-    // Create table for improvement steps
-    const improvementStepsBody = prediction.improvementSteps.map((step, index) => [
-      `${index + 1}`,
-      step
+    doc.text("Prediction Results", 14, 70);
+
+    const tableData = predictionResults.map(result => [
+      result.parameter,
+      result.value,
+      result.status.charAt(0).toUpperCase() + result.status.slice(1)
     ]);
     
+    // Use the updated function with correct typing
     autoTable(doc, {
-      startY: currentY + 4,
-      head: [['#', 'Recommendation']],
-      body: improvementStepsBody,
+      startY: 94,
+      head: [['Parameter', 'Input Value', 'Status']],
+      body: tableData,
       headStyles: { 
-        fillColor: [41, 128, 185],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold' 
-      },
-      bodyStyles: { fontSize: 10 },
-      alternateRowStyles: { fillColor: [240, 240, 240] }
-    });
-    
-    // Add 7-day forecast section
-    const forecastY = docWithAutoTable.lastAutoTable.finalY + 15;
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("7-Day Quality Forecast", 14, forecastY);
-    
-    // Create synthetic forecast data based on the current score
-    const forecastData = [
-      { day: "Today", score: prediction.score },
-      { day: "Tomorrow", score: Math.min(100, Math.max(0, prediction.score + (Math.random() * 10 - 5))).toFixed(1) },
-      { day: "Day 3", score: Math.min(100, Math.max(0, prediction.score + (Math.random() * 15 - 7))).toFixed(1) },
-      { day: "Day 4", score: Math.min(100, Math.max(0, prediction.score + (Math.random() * 20 - 10))).toFixed(1) },
-      { day: "Day 5", score: Math.min(100, Math.max(0, prediction.score + (Math.random() * 25 - 12))).toFixed(1) },
-      { day: "Day 6", score: Math.min(100, Math.max(0, prediction.score + (Math.random() * 30 - 15))).toFixed(1) },
-      { day: "Day 7", score: Math.min(100, Math.max(0, prediction.score + (Math.random() * 35 - 17))).toFixed(1) },
-    ];
-    
-    const forecastBody = forecastData.map(item => [
-      item.day,
-      item.score,
-      getQualityStatus(Number(item.score))
-    ]);
-    
-    autoTable(doc, {
-      startY: forecastY + 4,
-      head: [['Day', 'Predicted Score', 'Status']],
-      body: forecastBody,
-      headStyles: { 
-        fillColor: [41, 128, 185],
+        fillColor: [41, 128, 185] as any,
         textColor: [255, 255, 255],
         fontStyle: 'bold' 
       },
@@ -165,120 +158,260 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         2: { 
           fontStyle: 'bold',
-          fillColor: function(cell, row) {
-            const score = parseFloat(row.cells?.[1]?.raw?.toString() || "0");
-            return convertToTableColor(getScoreColor(score));
-          },
-          textColor: [255, 255, 255] // White text for visibility
+          fillColor: getStatusFillColor as any,
+          textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
-    
-    // Add current water quality metrics table
-    const metricsY = docWithAutoTable.lastAutoTable.finalY + 15;
+
+    let lastTableY = (doc as any).lastAutoTable.finalY || 10;
+
+    // Historical Comparison Table (Conditional)
+    if (includeHistorical) {
+      generateComparisonPDF();
+      lastTableY = (doc as any).lastAutoTable.finalY;
+    }
+
+    // Best Practices Table (Conditional)
+    if (includeBestPractices) {
+      addBestPracticesTable(doc);
+      lastTableY = (doc as any).lastAutoTable.finalY;
+    }
+
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Prediction Report');
+
+    doc.save('water_quality_prediction_report.pdf');
+
+    toast({
+      title: "Report Downloaded",
+      description: "Water quality prediction report has been generated successfully.",
+      duration: 3000,
+    });
+  };
+
+  const generateComparisonPDF = () => {
+    const doc = new jsPDF();
+    const dateGenerated = new Date().toLocaleString();
+
+    // Header
+    doc.setFillColor(0, 102, 204);
+    doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("Historical Comparison Report", 105, 20, { align: "center" });
+
+    // Report Generation Date
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Generated: ${dateGenerated}`, 14, 50);
+
+    // Historical Comparison Table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("Current Water Quality Metrics", 14, metricsY);
-    
-    // Create table data for current metrics
-    const metricsBody = createMetricsTableData(selectedSource.metrics);
+    doc.text("Historical Comparison", 14, 210);
+
+    const comparisonData = historicalData.map(item => [
+      item.period,
+      item.quality.charAt(0).toUpperCase() + item.quality.slice(1),
+      item.risk.charAt(0).toUpperCase() + item.risk.slice(1)
+    ]);
     
     autoTable(doc, {
-      startY: metricsY + 4,
-      head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
-      body: metricsBody,
+      startY: 234,
+      head: [['Time Period', 'Quality Status', 'Risk Level']],
+      body: comparisonData,
       headStyles: { 
-        fillColor: [41, 128, 185],
+        fillColor: [41, 128, 185] as any,
         textColor: [255, 255, 255],
         fontStyle: 'bold' 
       },
       bodyStyles: { fontSize: 10 },
       columnStyles: {
-        3: { 
+        1: { 
           fontStyle: 'bold',
-          fillColor: function(cell) { 
-            return getStatusColorForCell(cell);
-          },
-          textColor: [255, 255, 255] // White text for visibility
+          fillColor: getStatusColorForCell as any,
+          textColor: [255, 255, 255]
+        },
+        2: {
+          fontStyle: 'bold',
+          fillColor: (cell: any) => {
+            const risk = cell.raw.toLowerCase();
+            if (risk.includes('low')) return [46, 204, 113];
+            if (risk.includes('moderate')) return [241, 196, 15];
+            if (risk.includes('high')) return [231, 76, 60];
+            return [100, 100, 100];
+          } as any,
+          textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
-    
-    // Add footer to all pages
-    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Forecast Report');
-    
-    // Save the PDF
-    doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_forecast_report.pdf`);
-    
+
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Historical Comparison Report');
+
+    doc.save('historical_comparison_report.pdf');
+
     toast({
       title: "Report Downloaded",
-      description: `PDF forecast report for ${selectedSource.name} has been generated successfully.`,
+      description: "Historical comparison report has been generated successfully.",
       duration: 3000,
     });
   };
-  
-  // Helper function to determine status from score
-  const getQualityStatus = (score: number): string => {
-    if (score >= 80) return "Excellent";
-    if (score >= 70) return "Good";
-    if (score >= 60) return "Fair";
-    if (score >= 40) return "Poor";
-    return "Critical";
+
+  const addBestPracticesTable = (doc: jsPDF) => {
+    const dateGenerated = new Date().toLocaleString();
+
+    // Header
+    doc.setFillColor(0, 102, 204);
+    doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("Best Practices Report", 105, 20, { align: "center" });
+
+    // Report Generation Date
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Generated: ${dateGenerated}`, 14, 50);
+
+    // Best Practices Table
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Recommended Best Practices", 14, 190);
+
+    const bestPracticesData = bestPractices.map(item => [
+      item.practice,
+      item.impact.charAt(0).toUpperCase() + item.impact.slice(1),
+      item.priority.charAt(0).toUpperCase() + item.priority.slice(1)
+    ]);
+    
+    autoTable(castDocToPDFWithAutoTable(doc), {
+      startY: 214,
+      head: [['Best Practice', 'Impact', 'Priority']],
+      body: bestPracticesData,
+      headStyles: { 
+        fillColor: [41, 128, 185] as any,
+        textColor: [255, 255, 255],
+        fontStyle: 'bold' 
+      },
+      bodyStyles: { fontSize: 10 },
+      columnStyles: {
+        2: { 
+          fontStyle: 'bold',
+          fillColor: getStatusColorForCell as any,
+          textColor: [255, 255, 255]
+        }
+      },
+      alternateRowStyles: { fillColor: [240, 240, 240] }
+    });
+
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Best Practices Report');
+
+    doc.save('best_practices_report.pdf');
+
+    toast({
+      title: "Report Downloaded",
+      description: "Best practices report has been generated successfully.",
+      duration: 3000,
+    });
   };
 
   return (
-    <div className="min-h-screen w-full flex">
-      <Sidebar />
-      
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-[150%] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-8">
-            <div className="glass-panel rounded-xl p-6 shadow-lg">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h1 className="text-3xl font-semibold text-gray-800 mb-2">Water Quality Prediction</h1>
-                  <p className="text-muted-foreground max-w-3xl">
-                    Advanced AI-powered prediction of water quality parameters, helping you anticipate changes 
-                    and take proactive measures to maintain safe water conditions.
-                  </p>
-                </div>
-                
-                <button
-                  onClick={handleGenerateReport}
-                  className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
-                >
-                  <FileText size={16} />
-                  <span>Generate Forecast Report</span>
-                </button>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Card className="glass-panel rounded-xl shadow-card">
+        <CardHeader>
+          <CardTitle className="text-3xl font-semibold text-gradient-blue">
+            Water Quality Prediction
+          </CardTitle>
+          <CardDescription>
+            Enter the values for different water quality parameters to predict the overall quality.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {parameters.map(parameter => (
+              <div key={parameter} className="space-y-2">
+                <Label htmlFor={parameter}>{parameter}</Label>
+                <Input
+                  type="number"
+                  id={parameter}
+                  placeholder={`Enter value for ${parameter}`}
+                  value={predictionInputs.find(input => input.parameter === parameter)?.value || 0}
+                  onChange={(e) => handleInputChange(parameter, parseFloat(e.target.value))}
+                />
               </div>
-              
-              {/* Info Alert */}
-              <div className="mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-                <div className="flex items-start">
-                  <AlertTriangle className="h-5 w-5 text-blue-400 mr-3 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-blue-700 font-medium">Forecast Information</p>
-                    <p className="text-sm text-blue-600">
-                      Predictions are based on historical data, current conditions, and environmental factors.
-                      Accuracy may vary based on unexpected environmental changes.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <WaterSourceSelector 
-              sources={waterSources}
-              selectedSource={selectedSource}
-              onSelectSource={setSelectedSource}
-            />
-            
-            <QualityPredictor prediction={qualityPredictions[selectedSource.id]} />
+            ))}
           </div>
-        </div>
-      </div>
+          <Button onClick={predictWaterQuality}>Predict Water Quality</Button>
+        </CardContent>
+      </Card>
+
+      {predictionResults.length > 0 && (
+        <Card className="glass-panel mt-8 rounded-xl shadow-card">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold">Prediction Results</CardTitle>
+            <CardDescription>
+              Here are the predicted water quality statuses based on your inputs.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableCaption>Predicted water quality statuses for each parameter.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[200px]">Parameter</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {predictionResults.map(result => (
+                  <TableRow key={result.parameter}>
+                    <TableCell className="font-medium">{result.parameter}</TableCell>
+                    <TableCell>{result.value}</TableCell>
+                    <TableCell>{result.status}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="glass-panel mt-8 rounded-xl shadow-card">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold">Report Options</CardTitle>
+          <CardDescription>
+            Customize your report with additional data and download it.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="include-historical"
+              checked={includeHistorical}
+              onCheckedChange={(checked) => setIncludeHistorical(checked as boolean)}
+            />
+            <Label htmlFor="include-historical">Include Historical Comparison</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="include-best-practices"
+              checked={includeBestPractices}
+              onCheckedChange={(checked) => setIncludeBestPractices(checked as boolean)}
+            />
+            <Label htmlFor="include-best-practices">Include Best Practices</Label>
+          </div>
+          <Button onClick={generatePredictionPDF} className="bg-water-blue hover:bg-water-blue/90 text-white">
+            <Download className="mr-2 h-4 w-4" />
+            Download Report
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

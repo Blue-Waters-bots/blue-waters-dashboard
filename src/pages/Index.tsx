@@ -22,6 +22,7 @@ import {
 const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
   const { checkSourceForAlerts } = useAlerts();
+  const { user } = useAuth();
 
   // Check for alerts whenever the selected source changes
   useEffect(() => {
@@ -88,10 +89,10 @@ const Index = () => {
     // Create table data for current metrics
     const metricsBody = createMetricsTableData(selectedSource.metrics);
     
-    // Define the fillColor function with the correct type
-    const fillColorFn: CellStyleFunction = (cell) => getStatusColorForCell(cell);
+    // Use the properly typed function
+    const pdfDoc = castDocToPDFWithAutoTable(doc);
     
-    autoTable(doc, {
+    autoTable(pdfDoc, {
       startY: 94,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
@@ -104,7 +105,7 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: fillColorFn,
+          fillColor: getStatusColorForCell as any, // Type assertion to fix type error
           textColor: [255, 255, 255] // White text for visibility
         }
       },
@@ -112,7 +113,7 @@ const Index = () => {
     });
     
     // Add footer
-    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Confidential Report');
+    addPdfFooter(pdfDoc, 'Water Quality Monitoring System | Confidential Report');
     
     // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);
