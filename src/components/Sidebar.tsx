@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { MenuIcon, Mail, Phone, Globe, X, LayoutDashboard, FlaskConical, ShieldAlert, ChartLine } from "lucide-react";
+import { MenuIcon, Mail, Phone, Globe, X, LayoutDashboard, FlaskConical, ShieldAlert, ChartLine, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import NotificationsIcon from "./NotificationsIcon";
 import { useAlerts } from "@/contexts/AlertContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface SidebarProps {
   className?: string;
@@ -14,6 +15,8 @@ const Sidebar = ({ className }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showAlertPanel, setShowAlertPanel] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { alerts } = useAlerts();
   
   // Count active alerts
@@ -45,6 +48,17 @@ const Sidebar = ({ className }: SidebarProps) => {
       description: "Historical data and reporting" 
     },
   ];
+
+  const handleLogout = () => {
+    // Show a toast notification
+    toast({
+      title: "Logged out successfully",
+      description: "You have been logged out of your account",
+    });
+    
+    // Navigate to login page
+    navigate("/login");
+  };
 
   return (
     <div className={cn("relative", className)}>
@@ -130,6 +144,24 @@ const Sidebar = ({ className }: SidebarProps) => {
             className="h-6 w-6" 
             onClick={() => activeAlertsCount > 0 && setShowAlertPanel(!showAlertPanel)}
           />
+        </div>
+        
+        {/* Logout Button */}
+        <div className={cn(
+          "px-4 py-3 border-t border-white/20",
+          isCollapsed ? "flex justify-center" : ""
+        )}>
+          <button
+            onClick={handleLogout}
+            className={cn(
+              "flex items-center text-muted-foreground hover:text-water-blue transition-colors",
+              isCollapsed ? "justify-center w-full" : "gap-2"
+            )}
+            title="Logout"
+          >
+            <LogOut size={isCollapsed ? 20 : 18} />
+            {!isCollapsed && <span>Logout</span>}
+          </button>
         </div>
         
         {/* Sidebar Footer with Contact Info */}
