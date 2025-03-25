@@ -3,8 +3,9 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { WaterQualityMetric } from "@/types/waterQuality";
 
-// Define a type for the fillColor function that JsPdf-AutoTable accepts
+// Define a more specific type that works with jspdf-autotable
 export type CellStyleFunction = (cell: any, data?: any) => [number, number, number];
+export type Color = [number, number, number] | string | null;
 
 // Convert RGB array to proper CSS RGB format for various uses
 export const convertToTableColor = (rgbArray: [number, number, number]): string => {
@@ -29,7 +30,7 @@ export const castDocToPDFWithAutoTable = (doc: jsPDF) => {
 };
 
 // Get score color based on quality score
-export const getScoreColor = (score: number): [number, number, number] => {
+export const getScoreColor = (score: number): Color => {
   if (score >= 80) return [46, 204, 113]; // Green
   if (score >= 60) return [52, 152, 219]; // Blue
   if (score >= 40) return [241, 196, 15]; // Yellow
@@ -37,7 +38,7 @@ export const getScoreColor = (score: number): [number, number, number] => {
 };
 
 // Get score color for table cell
-export const getScoreColorForCell = (cell: any, row?: any): [number, number, number] => {
+export const getScoreColorForCell = (cell: any, row?: any): Color => {
   if (!cell || !cell.raw) {
     return [220, 220, 220]; // Default gray
   }
@@ -47,7 +48,7 @@ export const getScoreColorForCell = (cell: any, row?: any): [number, number, num
 };
 
 // Get status color for table cell
-export const getStatusColorForCell = (cell: any): [number, number, number] => {
+export const getStatusColorForCell = (cell: any): Color => {
   if (!cell || !cell.raw) return [220, 220, 220]; // Default gray
 
   const status = cell.raw;

@@ -6,7 +6,7 @@ import QualityMetrics from "@/components/QualityMetrics";
 import MapView from "@/components/MapView";
 import AlertBanner from "@/components/AlertBanner";
 import { waterSources } from "@/data/waterQualityData";
-import { FileText, Droplet, MapPin } from "lucide-react";
+import { FileText, Droplet, MapPin, BarChart4 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -143,11 +143,11 @@ const Index = () => {
       
       <div className="flex-1 overflow-y-auto pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-8">
-            <div className="glass-panel rounded-xl p-6 shadow-lg">
+          <div className="space-y-6">
+            <div className="glass-panel rounded-xl p-6 shadow-card">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h1 className="text-3xl font-semibold text-gray-800 mb-2">Water Quality Dashboard</h1>
+                  <h1 className="text-3xl font-semibold text-gradient-blue mb-2">Water Quality Dashboard</h1>
                   <p className="text-muted-foreground max-w-3xl">
                     Monitor your water quality metrics in real-time. View current conditions 
                     and take action to ensure water safety.
@@ -164,7 +164,7 @@ const Index = () => {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="bg-white/80 rounded-lg p-4 shadow-soft border border-gray-100 card-hover">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-full ${color} bg-opacity-10`}>
                       <Droplet className={color} />
@@ -176,7 +176,7 @@ const Index = () => {
                   </div>
                 </div>
                 
-                <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="bg-white/80 rounded-lg p-4 shadow-soft border border-gray-100 card-hover">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full text-water-blue bg-water-blue/10">
                       <Droplet className="text-water-blue" />
@@ -188,7 +188,7 @@ const Index = () => {
                   </div>
                 </div>
                 
-                <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="bg-white/80 rounded-lg p-4 shadow-soft border border-gray-100 card-hover">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full text-water-blue bg-water-blue/10">
                       <MapPin className="text-water-blue" />
@@ -200,10 +200,10 @@ const Index = () => {
                   </div>
                 </div>
                 
-                <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
+                <div className="bg-white/80 rounded-lg p-4 shadow-soft border border-gray-100 card-hover">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-full text-water-blue bg-water-blue/10">
-                      <Droplet className="text-water-blue" />
+                      <BarChart4 className="text-water-blue" />
                     </div>
                     <div>
                       <p className="text-muted-foreground text-sm">Metrics Tracked</p>
@@ -217,16 +217,19 @@ const Index = () => {
             {/* Alert Banner */}
             <AlertBanner />
             
-            {/* Water Sources - Now as a full-width section */}
+            {/* Water Sources */}
             <WaterSourceSelector 
               sources={waterSources}
               selectedSource={selectedSource}
               onSelectSource={setSelectedSource}
             />
             
-            {/* Map View - Now placed below the water sources */}
-            <div className="glass-panel p-6 rounded-xl shadow-md">
-              <h2 className="text-lg font-medium mb-4">Location Map</h2>
+            {/* Map View */}
+            <div className="glass-panel p-6 rounded-xl shadow-card">
+              <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-water-blue" />
+                <span>Location Map</span>
+              </h2>
               <MapView source={selectedSource} />
             </div>
             

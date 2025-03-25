@@ -17,7 +17,10 @@ const WaterSourceSelector = ({
 }: WaterSourceSelectorProps) => {
   return (
     <div className="w-full glass-panel p-6 rounded-xl shadow-md">
-      <h2 className="text-lg font-medium mb-4">Water Sources</h2>
+      <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
+        <Droplet className="h-5 w-5 text-water-blue" />
+        <span>Water Sources</span>
+      </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {sources.map((source) => {
           // Calculate overall status
@@ -41,10 +44,10 @@ const WaterSourceSelector = ({
               key={source.id}
               onClick={() => onSelectSource(source)}
               className={cn(
-                "bg-white/80 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:shadow-md",
+                "bg-white/80 rounded-lg p-4 cursor-pointer transition-all hover:shadow-md",
                 selectedSource.id === source.id 
-                  ? "ring-2 ring-water-blue ring-opacity-80" 
-                  : "hover:ring-1 hover:ring-water-blue hover:ring-opacity-50"
+                  ? "ring-2 ring-water-blue shadow-md transform scale-[1.02]" 
+                  : "hover:ring-1 hover:ring-water-blue/50 hover:transform hover:scale-[1.01]"
               )}
             >
               <div className="flex justify-between items-start mb-3">
@@ -64,7 +67,7 @@ const WaterSourceSelector = ({
               <p className="text-sm text-muted-foreground mb-3">{source.location}</p>
               
               <div className="flex gap-2 text-xs text-muted-foreground">
-                <Droplet size={14} />
+                <Droplet size={14} className="text-water-blue" />
                 <span>{metrics.length} metrics</span>
               </div>
             </div>
