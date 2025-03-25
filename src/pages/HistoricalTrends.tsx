@@ -23,6 +23,8 @@ import { addPdfFooter, castDocToPDFWithAutoTable, getStatusColorForCell } from "
 import { toast } from "@/components/ui/use-toast";
 import { FileText, ChevronRight, ChevronLeft, BarChart2, LineChart as LineChartIcon, PieChart as PieChartIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import Sidebar from "@/components/Sidebar";
+import PageHeader from "@/components/PageHeader";
 
 interface HistoricalData {
   month: string;
@@ -229,160 +231,166 @@ const HistoricalTrends = () => {
   };
 
   return (
-    <div className="flex">
-      {/* Collapsible Sidebar */}
-      <Collapsible
-        open={!sidebarCollapsed}
-        className="bg-white border-r border-gray-200 h-screen transition-all duration-300"
-      >
-        <div className={`flex flex-col h-full ${sidebarCollapsed ? 'w-0' : 'w-64'}`}>
-          <div className="flex items-center justify-between p-4 border-b">
-            <h2 className={`font-semibold text-lg ${sidebarCollapsed ? 'hidden' : 'block'}`}>
-              Chart Options
-            </h2>
-            <CollapsibleTrigger asChild>
+    <div className="flex h-screen overflow-hidden">
+      {/* Main Application Sidebar */}
+      <Sidebar />
+      
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-auto">
+        <PageHeader 
+          title="Historical Water Quality Trends"
+          description="View historical data and trends to understand long-term water quality changes"
+        />
+        
+        <div className="flex p-6">
+          {/* Collapsible Chart Controls Sidebar */}
+          <Collapsible
+            open={!sidebarCollapsed}
+            className="bg-white border-r border-gray-200 h-full transition-all duration-300 mr-6"
+          >
+            <div className={`flex flex-col h-full ${sidebarCollapsed ? 'w-0' : 'w-64'}`}>
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className={`font-semibold text-lg ${sidebarCollapsed ? 'hidden' : 'block'}`}>
+                  Chart Options
+                </h2>
+                <CollapsibleTrigger asChild>
+                  <button 
+                    onClick={toggleSidebar} 
+                    className="p-1 rounded-md hover:bg-gray-100"
+                  >
+                    {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                  </button>
+                </CollapsibleTrigger>
+              </div>
+              <CollapsibleContent className="p-4 space-y-4">
+                <div>
+                  <h3 className="font-medium mb-2">Chart Type</h3>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setActiveChartType('line')}
+                      className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
+                        activeChartType === 'line' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <LineChartIcon size={18} />
+                      <span>Line Chart</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveChartType('bar')}
+                      className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
+                        activeChartType === 'bar' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <BarChart2 size={18} />
+                      <span>Bar Chart</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveChartType('area')}
+                      className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
+                        activeChartType === 'area' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <LineChartIcon size={18} />
+                      <span>Area Chart</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveChartType('pie')}
+                      className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
+                        activeChartType === 'pie' 
+                          ? 'bg-blue-100 text-blue-700' 
+                          : 'hover:bg-gray-100'
+                      }`}
+                    >
+                      <PieChartIcon size={18} />
+                      <span>Pie Chart</span>
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <button 
+                    onClick={generateHistoricalPDF}
+                    className="flex items-center gap-2 w-full p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+                  >
+                    <FileText size={18} />
+                    <span>Download Report</span>
+                  </button>
+                </div>
+              </CollapsibleContent>
+            </div>
+          </Collapsible>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Chart controls for mobile/collapsed sidebar view */}
+            {sidebarCollapsed && (
               <button 
-                onClick={toggleSidebar} 
-                className="p-1 rounded-md hover:bg-gray-100"
+                onClick={toggleSidebar}
+                className="mb-4 p-2 bg-blue-50 hover:bg-blue-100 rounded-md text-blue-600"
               >
-                {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+                <ChevronRight size={20} />
               </button>
-            </CollapsibleTrigger>
-          </div>
-          <CollapsibleContent className="p-4 space-y-4">
-            <div>
-              <h3 className="font-medium mb-2">Chart Type</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setActiveChartType('line')}
-                  className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
-                    activeChartType === 'line' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <LineChartIcon size={18} />
-                  <span>Line Chart</span>
-                </button>
-                <button
-                  onClick={() => setActiveChartType('bar')}
-                  className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
-                    activeChartType === 'bar' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <BarChart2 size={18} />
-                  <span>Bar Chart</span>
-                </button>
-                <button
-                  onClick={() => setActiveChartType('area')}
-                  className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
-                    activeChartType === 'area' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <LineChartIcon size={18} />
-                  <span>Area Chart</span>
-                </button>
-                <button
-                  onClick={() => setActiveChartType('pie')}
-                  className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
-                    activeChartType === 'pie' 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <PieChartIcon size={18} />
-                  <span>Pie Chart</span>
-                </button>
+            )}
+
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold mb-4">{activeChartType.charAt(0).toUpperCase() + activeChartType.slice(1)} Chart: Monthly Water Quality</h2>
+              <div className="h-96">
+                <ResponsiveContainer width="100%" height="100%">
+                  {renderChartByType()}
+                </ResponsiveContainer>
               </div>
             </div>
-            <div>
-              <button 
-                onClick={generateHistoricalPDF}
-                className="flex items-center gap-2 w-full p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-              >
-                <FileText size={18} />
-                <span>Download Report</span>
-              </button>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold mb-4">Historical Data Table</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Month
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Average Value
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Anomalies
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {data.map((item, index) => (
+                      <tr key={index}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.month}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.averageValue}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.anomalies}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span 
+                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              item.status === 'safe' 
+                                ? 'bg-green-100 text-green-800' 
+                                : item.status === 'warning'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {item.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </CollapsibleContent>
-        </div>
-      </Collapsible>
-
-      {/* Main Content */}
-      <div className={`flex-1 p-6 transition-all duration-300 ${sidebarCollapsed ? 'ml-0' : 'ml-0'}`}>
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-blue-800">Historical Water Quality Trends</h1>
-            <p className="text-gray-600 mt-2">
-              View historical data and trends to understand long-term water quality changes.
-            </p>
-          </div>
-          {sidebarCollapsed && (
-            <button 
-              onClick={toggleSidebar}
-              className="p-2 bg-blue-50 hover:bg-blue-100 rounded-md text-blue-600"
-            >
-              <ChevronRight size={20} />
-            </button>
-          )}
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">{activeChartType.charAt(0).toUpperCase() + activeChartType.slice(1)} Chart: Monthly Water Quality</h2>
-          <div className="h-96">
-            <ResponsiveContainer width="100%" height="100%">
-              {renderChartByType()}
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Historical Data Table</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Month
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Average Value
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Anomalies
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {data.map((item, index) => (
-                  <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.month}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.averageValue}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.anomalies}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span 
-                        className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          item.status === 'safe' 
-                            ? 'bg-green-100 text-green-800' 
-                            : item.status === 'warning'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {item.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
