@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Card,
@@ -39,7 +38,6 @@ import {
   Color,
 } from "@/utils/pdfUtils";
 
-// Constants
 const parameters = [
   "pH", "Turbidity", "Dissolved Oxygen", "BOD", "Nitrates", "Phosphates",
   "Chlorides", "Total Dissolved Solids", "Fecal Coliform", "Metals (Lead, Mercury)"
@@ -57,7 +55,6 @@ const bestPractices = [
   { practice: "Treatment Optimization", impact: "Warning", priority: "Moderate" }
 ];
 
-// Interfaces
 interface PredictionInput {
   parameter: string;
   value: number;
@@ -110,9 +107,7 @@ const WaterQualityPrediction = () => {
     setPredictionResults(newResults);
   };
 
-  // Type safer implementation for fillColor function
   const getStatusFillColor = (cell: any, row: any) => {
-    // Cast the result to any to satisfy the type constraints
     return getStatusColorForCell(cell) as any;
   };
 
@@ -120,7 +115,6 @@ const WaterQualityPrediction = () => {
     const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
 
-    // Header
     doc.setFillColor(0, 102, 204);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     doc.setTextColor(255, 255, 255);
@@ -128,13 +122,11 @@ const WaterQualityPrediction = () => {
     doc.setFont("helvetica", "bold");
     doc.text("Water Quality Prediction Report", 105, 20, { align: "center" });
 
-    // Report Generation Date
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(`Generated: ${dateGenerated}`, 14, 50);
 
-    // Prediction Results Table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Prediction Results", 14, 70);
@@ -144,8 +136,7 @@ const WaterQualityPrediction = () => {
       result.value,
       result.status.charAt(0).toUpperCase() + result.status.slice(1)
     ]);
-    
-    // Use the updated function with correct typing
+
     autoTable(doc, {
       startY: 94,
       head: [['Parameter', 'Input Value', 'Status']],
@@ -168,13 +159,11 @@ const WaterQualityPrediction = () => {
 
     let lastTableY = (doc as any).lastAutoTable.finalY || 10;
 
-    // Historical Comparison Table (Conditional)
     if (includeHistorical) {
       generateComparisonPDF();
       lastTableY = (doc as any).lastAutoTable.finalY;
     }
 
-    // Best Practices Table (Conditional)
     if (includeBestPractices) {
       addBestPracticesTable(doc);
       lastTableY = (doc as any).lastAutoTable.finalY;
@@ -195,7 +184,6 @@ const WaterQualityPrediction = () => {
     const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
 
-    // Header
     doc.setFillColor(0, 102, 204);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     doc.setTextColor(255, 255, 255);
@@ -203,13 +191,11 @@ const WaterQualityPrediction = () => {
     doc.setFont("helvetica", "bold");
     doc.text("Historical Comparison Report", 105, 20, { align: "center" });
 
-    // Report Generation Date
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(`Generated: ${dateGenerated}`, 14, 50);
 
-    // Historical Comparison Table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Historical Comparison", 14, 210);
@@ -219,7 +205,7 @@ const WaterQualityPrediction = () => {
       item.quality.charAt(0).toUpperCase() + item.quality.slice(1),
       item.risk.charAt(0).toUpperCase() + item.risk.slice(1)
     ]);
-    
+
     autoTable(doc, {
       startY: 234,
       head: [['Time Period', 'Quality Status', 'Risk Level']],
@@ -238,13 +224,13 @@ const WaterQualityPrediction = () => {
         },
         2: {
           fontStyle: 'bold',
-          fillColor: (cell: any) => {
+          fillColor: function(cell) {
             const risk = cell.raw.toLowerCase();
-            if (risk.includes('low')) return [46, 204, 113];
-            if (risk.includes('moderate')) return [241, 196, 15];
-            if (risk.includes('high')) return [231, 76, 60];
-            return [100, 100, 100];
-          } as any,
+            if (risk.includes('low')) return [46, 204, 113] as Color;
+            if (risk.includes('moderate')) return [241, 196, 15] as Color;
+            if (risk.includes('high')) return [231, 76, 60] as Color;
+            return [100, 100, 100] as Color;
+          },
           textColor: [255, 255, 255]
         }
       },
@@ -265,7 +251,6 @@ const WaterQualityPrediction = () => {
   const addBestPracticesTable = (doc: jsPDF) => {
     const dateGenerated = new Date().toLocaleString();
 
-    // Header
     doc.setFillColor(0, 102, 204);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     doc.setTextColor(255, 255, 255);
@@ -273,13 +258,11 @@ const WaterQualityPrediction = () => {
     doc.setFont("helvetica", "bold");
     doc.text("Best Practices Report", 105, 20, { align: "center" });
 
-    // Report Generation Date
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.text(`Generated: ${dateGenerated}`, 14, 50);
 
-    // Best Practices Table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Recommended Best Practices", 14, 190);
@@ -289,7 +272,7 @@ const WaterQualityPrediction = () => {
       item.impact.charAt(0).toUpperCase() + item.impact.slice(1),
       item.priority.charAt(0).toUpperCase() + item.priority.slice(1)
     ]);
-    
+
     autoTable(castDocToPDFWithAutoTable(doc), {
       startY: 214,
       head: [['Best Practice', 'Impact', 'Priority']],
