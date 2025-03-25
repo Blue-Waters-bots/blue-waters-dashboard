@@ -54,40 +54,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-sky-50 flex flex-col md:flex-row items-center">
-      {/* Left side with illustration and tagline */}
-      <div className="w-full md:w-1/2 p-8 md:p-16 flex flex-col items-center md:items-start justify-center">
-        <div className="mb-8 flex items-center">
-          <img 
-            src="/lovable-uploads/11b20fcc-2ac8-4457-8c95-d74a46e59109.png" 
-            alt="Blue Waters Logo" 
-            className="h-12 mr-3" 
-          />
-          <h1 className="text-2xl font-bold text-blue-600">Blue Waters</h1>
-        </div>
-        
-        <div className="text-center md:text-left mb-8">
-          <h2 className="text-4xl font-bold text-sky-500 mb-2">
-            Sign in to view your<br />Water quality.
-          </h2>
-          <p className="text-gray-600 mt-4 mb-6">
-            Development & Commercialization of IoT Based Water<br />
-            Quality Monitoring Technology
-          </p>
-          <p className="text-xl text-blue-600 font-semibold">
-            Revolutionizing Water Industry with AI
-          </p>
-        </div>
-        
-        <img 
-          src="/lovable-uploads/11b20fcc-2ac8-4457-8c95-d74a46e59109.png" 
-          alt="Person drinking water" 
-          className="hidden md:block w-3/4 max-w-md"
-        />
-      </div>
-
-      {/* Right side with login form */}
-      <div className="w-full md:w-1/2 p-8 flex justify-center items-center">
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-sky-50 flex items-center justify-center">
+      <img 
+        src="/lovable-uploads/11b20fcc-2ac8-4457-8c95-d74a46e59109.png" 
+        alt="Blue Waters Logo" 
+        className="w-1/2 max-w-md"
+      />
+      
+      {/* Hidden login form but still functional */}
+      <div className="hidden">
         <Card className="w-full max-w-md shadow-xl border-0">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center text-blue-700">Login</CardTitle>
