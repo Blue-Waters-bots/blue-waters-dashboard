@@ -1,99 +1,63 @@
 
-import React, { useState, useEffect } from 'react';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import { addPdfFooter, castDocToPDFWithAutoTable, getStatusColorForCell } from "@/utils/pdfUtils";
-import { toast } from "@/components/ui/use-toast";
-import { FileText, ChevronRight, ChevronLeft, BarChart2, LineChart as LineChartIcon, PieChart as PieChartIcon } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
-import PageHeader from "@/components/PageHeader";
-
-interface HistoricalData {
-  month: string;
-  averageValue: number;
-  anomalies: string;
-  status: string;
-}
-
-const historicalData: HistoricalData[] = [
-  { month: 'January', averageValue: 75, anomalies: 'None', status: 'safe' },
-  { month: 'February', averageValue: 80, anomalies: 'Slight increase', status: 'warning' },
-  { month: 'March', averageValue: 90, anomalies: 'Moderate increase', status: 'danger' },
-  { month: 'April', averageValue: 85, anomalies: 'Slight decrease', status: 'warning' },
-  { month: 'May', averageValue: 78, anomalies: 'None', status: 'safe' },
-  { month: 'June', averageValue: 70, anomalies: 'None', status: 'safe' },
-  { month: 'July', averageValue: 65, anomalies: 'None', status: 'safe' },
-  { month: 'August', averageValue: 72, anomalies: 'None', status: 'safe' },
-  { month: 'September', averageValue: 82, anomalies: 'Slight increase', status: 'warning' },
-  { month: 'October', averageValue: 88, anomalies: 'Moderate increase', status: 'danger' },
-  { month: 'November', averageValue: 80, anomalies: 'Slight decrease', status: 'warning' },
-  { month: 'December', averageValue: 76, anomalies: 'None', status: 'safe' },
-];
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+import HistoricalData from "@/components/HistoricalData";
+import { waterSources, historicalData } from "@/data/waterQualityData";
+import WaterSourceSelector from "@/components/WaterSourceSelector";
+import { FileText } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { toast } from "@/components/ui/use-toast";
+import { 
+  getStatusColorForCell, 
+  addPdfFooter, 
+  createMetricsTableData, 
+  castDocToPDFWithAutoTable 
+} from "@/utils/pdfUtils";
 
 const HistoricalTrends = () => {
-  const [data, setData] = useState(historicalData);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [activeChartType, setActiveChartType] = useState<'line' | 'bar' | 'area' | 'pie'>('line');
+  const [selectedSource, setSelectedSource] = useState(waterSources[0]);
 
-  useEffect(() => {
-    setData(historicalData);
-  }, []);
-
-  // Function to generate PDF report
-  const generateHistoricalPDF = () => {
+  const handleDownloadReport = () => {
+    // Create a new PDF document
     const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
-
+    
     // Add header with logo and title
     doc.setFillColor(0, 102, 204); // Header background color
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
-
+    
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.text("Historical Water Quality Trends", 105, 20, { align: "center" });
-
-    // Add report metadata
+    doc.text("Water Quality Report", 105, 20, { align: "center" });
+    
+    // Add source information
     doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(selectedSource.name, 14, 50);
+    
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(`Generated: ${dateGenerated}`, 14, 50);
-
-    // Prepare table data
-    const tableData = data.map(item => [
-      item.month,
-      item.averageValue,
-      item.anomalies,
-      item.status.charAt(0).toUpperCase() + item.status.slice(1)
-    ]);
-
-    // Use a properly typed function and context for PDF generation
+    doc.text(`Generated: ${dateGenerated}`, 14, 60);
+    doc.text(`Location: ${selectedSource.location}`, 14, 66);
+    doc.text(`Type: ${selectedSource.type}`, 14, 72);
+    
+    // Add current metrics table
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Current Water Quality Metrics", 14, 84);
+    
+    // Create table data for current metrics
+    const metricsBody = createMetricsTableData(selectedSource.metrics);
+    
     autoTable(doc, {
-      startY: 94,
-      head: [['Month', 'Average Value', 'Anomalies', 'Status']],
-      body: tableData,
+      startY: 88,
+      head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
+      body: metricsBody,
       headStyles: { 
-        fillColor: [41, 128, 185] as any,
+        fillColor: [41, 128, 185],
         textColor: [255, 255, 255],
         fontStyle: 'bold' 
       },
@@ -101,296 +65,103 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: getStatusColorForCell as any,
-          textColor: [255, 255, 255]
+          fillColor: function(cell) { 
+            return getStatusColorForCell(cell);
+          },
+          textColor: [255, 255, 255] // White text for good contrast
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
-
+    
+    // Cast doc to jsPDFWithAutoTable to access lastAutoTable
+    const docWithAutoTable = castDocToPDFWithAutoTable(doc);
+    
+    // Add historical data section
+    const currentY = docWithAutoTable.lastAutoTable.finalY + 15;
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Historical Trends Data", 14, currentY);
+    
+    // Create historical data tables for each metric
+    let lastY = currentY + 4;
+    historicalData.forEach(history => {
+      const metric = selectedSource.metrics.find(m => m.id === history.metricId);
+      if (metric) {
+        lastY += 10;
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text(`${history.metricName} (${metric.unit})`, 14, lastY);
+        
+        const historyBody = history.data.map(point => {
+          const date = new Date(point.date);
+          const formattedDate = `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+          return [formattedDate, `${point.value} ${metric.unit}`];
+        });
+        
+        autoTable(doc, {
+          startY: lastY + 4,
+          head: [['Date', 'Value']],
+          body: historyBody,
+          headStyles: { 
+            fillColor: [41, 128, 185],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold' 
+          },
+          alternateRowStyles: { fillColor: [240, 240, 240] }
+        });
+        
+        // Update lastY using the casted document
+        lastY = castDocToPDFWithAutoTable(doc).lastAutoTable.finalY + 10;
+      }
+    });
+    
     // Add footer
-    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Historical Trends Report');
-
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Confidential Report');
+    
     // Save the PDF
-    doc.save('historical_water_quality_trends.pdf');
-
+    doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);
+    
     toast({
       title: "Report Downloaded",
-      description: "Historical trends report has been generated successfully.",
+      description: `PDF report for ${selectedSource.name} has been generated successfully.`,
       duration: 3000,
     });
   };
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
-
-  const renderChartByType = () => {
-    switch (activeChartType) {
-      case 'bar':
-        return (
-          <BarChart
-            data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="averageValue" fill="#3182ce" />
-          </BarChart>
-        );
-      case 'area':
-        return (
-          <AreaChart
-            data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Area 
-              type="monotone" 
-              dataKey="averageValue" 
-              stroke="#8884d8" 
-              fill="#8884d8" 
-              fillOpacity={0.3}
-            />
-          </AreaChart>
-        );
-      case 'pie':
-        // Prepare data for pie chart
-        const pieData = data.reduce((acc, curr) => {
-          const existing = acc.find(item => item.status === curr.status);
-          if (existing) {
-            existing.value += 1;
-          } else {
-            acc.push({
-              name: curr.status.charAt(0).toUpperCase() + curr.status.slice(1),
-              value: 1,
-              status: curr.status
-            });
-          }
-          return acc;
-        }, [] as { name: string; value: number; status: string }[]);
-
-        return (
-          <PieChart>
-            <Pie
-              data={pieData}
-              cx="50%"
-              cy="50%"
-              labelLine={true}
-              outerRadius={150}
-              fill="#8884d8"
-              dataKey="value"
-              label={({ name, value }) => `${name}: ${value}`}
-            >
-              {pieData.map((entry, index) => (
-                <Cell 
-                  key={`cell-${index}`} 
-                  fill={
-                    entry.status === 'safe' 
-                      ? '#10B981' 
-                      : entry.status === 'warning'
-                        ? '#F59E0B'
-                        : '#EF4444'
-                  } 
-                />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend />
-          </PieChart>
-        );
-      case 'line':
-      default:
-        return (
-          <LineChart
-            data={data}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="averageValue" 
-              stroke="#3182ce" 
-              activeDot={{ r: 8 }} 
-              strokeWidth={2}
-            />
-          </LineChart>
-        );
-    }
-  };
-
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Main Application Sidebar */}
+    <div className="min-h-screen w-full flex">
       <Sidebar />
       
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-auto">
-        <PageHeader 
-          title="Historical Water Quality Trends"
-          description="View historical data and trends to understand long-term water quality changes"
-        />
-        
-        <div className="flex p-6">
-          {/* Collapsible Chart Controls Sidebar */}
-          <Collapsible
-            open={!sidebarCollapsed}
-            className="bg-white border-r border-gray-200 h-full transition-all duration-300 mr-6"
-          >
-            <div className={`flex flex-col h-full ${sidebarCollapsed ? 'w-0' : 'w-64'}`}>
-              <div className="flex items-center justify-between p-4 border-b">
-                <h2 className={`font-semibold text-lg ${sidebarCollapsed ? 'hidden' : 'block'}`}>
-                  Chart Options
-                </h2>
-                <CollapsibleTrigger asChild>
-                  <button 
-                    onClick={toggleSidebar} 
-                    className="p-1 rounded-md hover:bg-gray-100"
-                  >
-                    {sidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-                  </button>
-                </CollapsibleTrigger>
-              </div>
-              <CollapsibleContent className="p-4 space-y-4">
-                <div>
-                  <h3 className="font-medium mb-2">Chart Type</h3>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => setActiveChartType('line')}
-                      className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
-                        activeChartType === 'line' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'hover:bg-gray-100'
-                      }`}
-                    >
-                      <LineChartIcon size={18} />
-                      <span>Line Chart</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveChartType('bar')}
-                      className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
-                        activeChartType === 'bar' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'hover:bg-gray-100'
-                      }`}
-                    >
-                      <BarChart2 size={18} />
-                      <span>Bar Chart</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveChartType('area')}
-                      className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
-                        activeChartType === 'area' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'hover:bg-gray-100'
-                      }`}
-                    >
-                      <LineChartIcon size={18} />
-                      <span>Area Chart</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveChartType('pie')}
-                      className={`flex items-center gap-2 w-full p-2 rounded-md transition-colors ${
-                        activeChartType === 'pie' 
-                          ? 'bg-blue-100 text-blue-700' 
-                          : 'hover:bg-gray-100'
-                      }`}
-                    >
-                      <PieChartIcon size={18} />
-                      <span>Pie Chart</span>
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <button 
-                    onClick={generateHistoricalPDF}
-                    className="flex items-center gap-2 w-full p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-                  >
-                    <FileText size={18} />
-                    <span>Download Report</span>
-                  </button>
-                </div>
-              </CollapsibleContent>
-            </div>
-          </Collapsible>
-
-          {/* Main Content */}
-          <div className="flex-1">
-            {/* Chart controls for mobile/collapsed sidebar view */}
-            {sidebarCollapsed && (
-              <button 
-                onClick={toggleSidebar}
-                className="mb-4 p-2 bg-blue-50 hover:bg-blue-100 rounded-md text-blue-600"
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="space-y-8">
+            <div className="flex justify-between items-center">
+              <h1 className="text-3xl font-semibold text-gray-800 mb-2">Historical Trends</h1>
+              <button
+                onClick={handleDownloadReport}
+                className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
               >
-                <ChevronRight size={20} />
+                <FileText size={16} />
+                <span>Download Report</span>
               </button>
-            )}
-
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">{activeChartType.charAt(0).toUpperCase() + activeChartType.slice(1)} Chart: Monthly Water Quality</h2>
-              <div className="h-96">
-                <ResponsiveContainer width="100%" height="100%">
-                  {renderChartByType()}
-                </ResponsiveContainer>
-              </div>
             </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Historical Data Table</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full bg-white divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Month
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Average Value
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Anomalies
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {data.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.month}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.averageValue}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.anomalies}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span 
-                            className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              item.status === 'safe' 
-                                ? 'bg-green-100 text-green-800' 
-                                : item.status === 'warning'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-red-100 text-red-800'
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            
+            <p className="text-muted-foreground max-w-3xl">
+              Analyze historical water quality data to identify trends, patterns, and seasonal variations.
+              Download detailed reports for compliance and record-keeping.
+            </p>
+              
+            <WaterSourceSelector 
+              sources={waterSources}
+              selectedSource={selectedSource}
+              onSelectSource={setSelectedSource}
+            />
+            
+            <HistoricalData 
+              historicalData={historicalData}
+              metrics={selectedSource.metrics}
+            />
           </div>
         </div>
       </div>

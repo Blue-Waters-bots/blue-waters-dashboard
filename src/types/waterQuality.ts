@@ -1,3 +1,4 @@
+
 export interface WaterQualityMetric {
   id: string;
   name: string;
@@ -52,6 +53,3 @@ declare module '@/index.css' {
     '--water-blue': string;
   }
 }
-
-// Add the WaterQualityStatus export
-export type WaterQualityStatus = 'safe' | 'warning' | 'danger';

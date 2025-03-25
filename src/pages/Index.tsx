@@ -1,6 +1,6 @@
+
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
-import PageHeader from "@/components/PageHeader";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
 import QualityMetrics from "@/components/QualityMetrics";
 import MapView from "@/components/MapView";
@@ -11,7 +11,6 @@ import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useAlerts } from "@/contexts/AlertContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { 
   getStatusColorForCell, 
   addPdfFooter, 
@@ -23,7 +22,6 @@ import {
 const Index = () => {
   const [selectedSource, setSelectedSource] = useState(waterSources[0]);
   const { checkSourceForAlerts } = useAlerts();
-  const { user } = useAuth();
 
   // Check for alerts whenever the selected source changes
   useEffect(() => {
@@ -90,10 +88,10 @@ const Index = () => {
     // Create table data for current metrics
     const metricsBody = createMetricsTableData(selectedSource.metrics);
     
-    // Use the properly typed function
-    const pdfDoc = castDocToPDFWithAutoTable(doc);
+    // Define the fillColor function with the correct type
+    const fillColorFn: CellStyleFunction = (cell) => getStatusColorForCell(cell);
     
-    autoTable(pdfDoc, {
+    autoTable(doc, {
       startY: 94,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
       body: metricsBody,
@@ -106,15 +104,15 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: getStatusColorForCell as any,
-          textColor: [255, 255, 255]
+          fillColor: fillColorFn,
+          textColor: [255, 255, 255] // White text for visibility
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
     // Add footer
-    addPdfFooter(pdfDoc, 'Water Quality Monitoring System | Confidential Report');
+    addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Confidential Report');
     
     // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);
@@ -147,19 +145,23 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
             <div className="glass-panel rounded-xl p-6 shadow-card">
-              <PageHeader 
-                title="Water Quality Dashboard"
-                description="Monitor your water quality metrics in real-time. View current conditions and take action to ensure water safety."
-                actions={
-                  <button
-                    onClick={handleDownloadReport}
-                    className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
-                  >
-                    <FileText size={16} />
-                    <span>Download Report</span>
-                  </button>
-                }
-              />
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h1 className="text-3xl font-semibold text-gradient-blue mb-2">Water Quality Dashboard</h1>
+                  <p className="text-muted-foreground max-w-3xl">
+                    Monitor your water quality metrics in real-time. View current conditions 
+                    and take action to ensure water safety.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleDownloadReport}
+                  className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
+                >
+                  <FileText size={16} />
+                  <span>Download Report</span>
+                </button>
+              </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <div className="bg-white/80 rounded-lg p-4 shadow-soft border border-gray-100 card-hover">
