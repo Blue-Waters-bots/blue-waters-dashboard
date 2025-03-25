@@ -10,6 +10,7 @@ import WaterQualityPrediction from "./pages/WaterQualityPrediction";
 import HealthRiskAssessment from "./pages/HealthRiskAssessment";
 import HistoricalTrends from "./pages/HistoricalTrends";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
             <Route path="/water-quality-prediction" element={<WaterQualityPrediction />} />
             <Route path="/health-risk-assessment" element={<HealthRiskAssessment />} />
             <Route path="/historical-trends" element={<HistoricalTrends />} />
+            <Route path="/login" element={<Login />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
