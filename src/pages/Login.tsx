@@ -61,7 +61,7 @@ const Login = () => {
           <img 
             src="/lovable-uploads/11b20fcc-2ac8-4457-8c95-d74a46e59109.png" 
             alt="Blue Waters Logo" 
-            className="w-full max-w-md"
+            className="w-full max-w-md rounded-2xl"
           />
         </div>
         
