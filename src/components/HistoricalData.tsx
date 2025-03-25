@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { HistoricalData as HistoricalDataType, WaterQualityMetric } from "@/types/waterQuality";
 import { 
@@ -145,7 +146,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: getStatusColorForCell,
+          fillColor: function(cell) { return getStatusColorForCell(cell) },
           textColor: [255, 255, 255] // White text for status column
         }
       },
@@ -202,6 +203,286 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
     });
   };
 
+  // Define chart rendering
+  const renderChart = () => {
+    if (!selectedData) return null;
+    
+    switch (chartType) {
+      case 'line':
+        return (
+          <LineChart
+            data={selectedData.data}
+            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <XAxis 
+              dataKey="date" 
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+              }}
+            />
+            <YAxis 
+              domain={[
+                (dataMin: number) => Math.floor(dataMin * 0.9),
+                (dataMax: number) => Math.ceil(dataMax * 1.1)
+              ]} 
+              tickFormatter={(value) => value.toFixed(1)}
+            />
+            <Tooltip 
+              formatter={(value: number) => [
+                `${value} ${selectedMetricInfo?.unit || ''}`,
+                selectedData.metricName
+              ]}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke={getLineColor(selectedMetric)}
+              strokeWidth={2}
+              dot={{ r: 4, strokeWidth: 2 }}
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        );
+        
+      case 'bar':
+        return (
+          <BarChart
+            data={selectedData.data}
+            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <XAxis 
+              dataKey="date" 
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+              }}
+            />
+            <YAxis
+              domain={[
+                (dataMin: number) => Math.floor(dataMin * 0.9),
+                (dataMax: number) => Math.ceil(dataMax * 1.1)
+              ]}
+              tickFormatter={(value) => value.toFixed(1)}
+            />
+            <Tooltip
+              formatter={(value: number) => [
+                `${value} ${selectedMetricInfo?.unit || ''}`,
+                selectedData.metricName
+              ]}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+              }}
+            />
+            <Bar
+              dataKey="value"
+              fill={getLineColor(selectedMetric)}
+              radius={[4, 4, 0, 0]}
+            />
+          </BarChart>
+        );
+        
+      case 'area':
+        return (
+          <AreaChart
+            data={selectedData.data}
+            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <XAxis
+              dataKey="date"
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+              }}
+            />
+            <YAxis
+              domain={[
+                (dataMin: number) => Math.floor(dataMin * 0.9),
+                (dataMax: number) => Math.ceil(dataMax * 1.1)
+              ]}
+              tickFormatter={(value) => value.toFixed(1)}
+            />
+            <Tooltip
+              formatter={(value: number) => [
+                `${value} ${selectedMetricInfo?.unit || ''}`,
+                selectedData.metricName
+              ]}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke={getLineColor(selectedMetric)}
+              fill={getLineColor(selectedMetric)}
+              fillOpacity={0.3}
+            />
+          </AreaChart>
+        );
+        
+      case 'pie':
+        return (
+          <PieChart>
+            <Pie
+              data={preparePieData(selectedData.data)}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+              nameKey="name"
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            >
+              {preparePieData(selectedData.data).map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value: number) => [
+                `${value} ${selectedMetricInfo?.unit || ''}`,
+                selectedData.metricName
+              ]}
+            />
+          </PieChart>
+        );
+        
+      case 'scatter':
+        return (
+          <ScatterChart
+            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <XAxis 
+              dataKey="date" 
+              type="category"
+              name="Month"
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+              }}
+            />
+            <YAxis 
+              dataKey="value"
+              name="Value"
+              domain={[
+                (dataMin: number) => Math.floor(dataMin * 0.9),
+                (dataMax: number) => Math.ceil(dataMax * 1.1)
+              ]}
+              tickFormatter={(value) => value.toFixed(1)}
+            />
+            <Tooltip 
+              formatter={(value: number) => [
+                `${value} ${selectedMetricInfo?.unit || ''}`,
+                selectedData.metricName
+              ]}
+              cursor={{ strokeDasharray: '3 3' }}
+            />
+            <Scatter 
+              name={selectedData.metricName} 
+              data={selectedData.data} 
+              fill={getLineColor(selectedMetric)}
+            />
+          </ScatterChart>
+        );
+        
+      case 'bubble':
+        return (
+          <ScatterChart
+            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <XAxis 
+              dataKey="x" 
+              type="number"
+              name="Index"
+              tickFormatter={(value) => {
+                const date = new Date(selectedData.data[value]?.date || "");
+                return date instanceof Date && !isNaN(date.getTime()) ? 
+                  `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}` : value;
+              }}
+            />
+            <YAxis 
+              dataKey="y"
+              name="Value"
+              domain={[
+                (dataMin: number) => Math.floor(dataMin * 0.9),
+                (dataMax: number) => Math.ceil(dataMax * 1.1)
+              ]}
+              tickFormatter={(value) => value.toFixed(1)}
+            />
+            <ZAxis 
+              dataKey="z" 
+              range={[60, 400]} 
+              name="Size" 
+            />
+            <Tooltip 
+              formatter={(value: number, name: string) => {
+                if (name === "Size") return [`${value}`, "Size"];
+                return [`${value} ${selectedMetricInfo?.unit || ''}`, selectedData.metricName];
+              }}
+              cursor={{ strokeDasharray: '3 3' }}
+            />
+            <Scatter 
+              name={selectedData.metricName} 
+              data={prepareBubbleData(selectedData.data)} 
+              fill={getLineColor(selectedMetric)}
+            />
+          </ScatterChart>
+        );
+        
+      case 'composed':
+        return (
+          <ComposedChart
+            data={selectedData.data}
+            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+            <XAxis 
+              dataKey="date" 
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
+              }}
+            />
+            <YAxis
+              domain={[
+                (dataMin: number) => Math.floor(dataMin * 0.9),
+                (dataMax: number) => Math.ceil(dataMax * 1.1)
+              ]}
+              tickFormatter={(value) => value.toFixed(1)}
+            />
+            <Tooltip
+              formatter={(value: number) => [
+                `${value} ${selectedMetricInfo?.unit || ''}`,
+                selectedData.metricName
+              ]}
+              labelFormatter={(label) => {
+                const date = new Date(label);
+                return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
+              }}
+            />
+            <Legend />
+            <Bar dataKey="value" fill={COLORS[1]} name="Monthly Value" barSize={20} />
+            <Line type="monotone" dataKey="value" stroke={COLORS[0]} name="Trend" />
+          </ComposedChart>
+        );
+        
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="w-full mb-8">
       <div className="flex justify-between items-center mb-4">
@@ -253,256 +534,7 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
         {selectedData && (
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              {chartType === 'line' ? (
-                <LineChart
-                  data={selectedData.data}
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis 
-                    dataKey="date" 
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
-                    }}
-                  />
-                  <YAxis 
-                    domain={[
-                      (dataMin: number) => Math.floor(dataMin * 0.9),
-                      (dataMax: number) => Math.ceil(dataMax * 1.1)
-                    ]} 
-                    tickFormatter={(value) => value.toFixed(1)}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => [
-                      `${value} ${selectedMetricInfo?.unit || ''}`,
-                      selectedData.metricName
-                    ]}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke={getLineColor(selectedMetric)}
-                    strokeWidth={2}
-                    dot={{ r: 4, strokeWidth: 2 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              ) : chartType === 'bar' ? (
-                <BarChart
-                  data={selectedData.data}
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis 
-                    dataKey="date" 
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
-                    }}
-                  />
-                  <YAxis
-                    domain={[
-                      (dataMin: number) => Math.floor(dataMin * 0.9),
-                      (dataMax: number) => Math.ceil(dataMax * 1.1)
-                    ]}
-                    tickFormatter={(value) => value.toFixed(1)}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [
-                      `${value} ${selectedMetricInfo?.unit || ''}`,
-                      selectedData.metricName
-                    ]}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-                    }}
-                  />
-                  <Bar
-                    dataKey="value"
-                    fill={getLineColor(selectedMetric)}
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              ) : chartType === 'area' ? (
-                <AreaChart
-                  data={selectedData.data}
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
-                    }}
-                  />
-                  <YAxis
-                    domain={[
-                      (dataMin: number) => Math.floor(dataMin * 0.9),
-                      (dataMax: number) => Math.ceil(dataMax * 1.1)
-                    ]}
-                    tickFormatter={(value) => value.toFixed(1)}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [
-                      `${value} ${selectedMetricInfo?.unit || ''}`,
-                      selectedData.metricName
-                    ]}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="value"
-                    stroke={getLineColor(selectedMetric)}
-                    fill={getLineColor(selectedMetric)}
-                    fillOpacity={0.3}
-                  />
-                </AreaChart>
-              ) : chartType === 'pie' ? (
-                <PieChart>
-                  <Pie
-                    data={preparePieData(selectedData.data)}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {preparePieData(selectedData.data).map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [
-                      `${value} ${selectedMetricInfo?.unit || ''}`,
-                      selectedData.metricName
-                    ]}
-                  />
-                </PieChart>
-              ) : chartType === 'scatter' ? (
-                <ScatterChart
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis 
-                    dataKey="date" 
-                    type="category"
-                    name="Month"
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
-                    }}
-                  />
-                  <YAxis 
-                    dataKey="value"
-                    name="Value"
-                    domain={[
-                      (dataMin: number) => Math.floor(dataMin * 0.9),
-                      (dataMax: number) => Math.ceil(dataMax * 1.1)
-                    ]}
-                    tickFormatter={(value) => value.toFixed(1)}
-                  />
-                  <Tooltip 
-                    formatter={(value: number) => [
-                      `${value} ${selectedMetricInfo?.unit || ''}`,
-                      selectedData.metricName
-                    ]}
-                    cursor={{ strokeDasharray: '3 3' }}
-                  />
-                  <Scatter 
-                    name={selectedData.metricName} 
-                    data={selectedData.data} 
-                    fill={getLineColor(selectedMetric)}
-                  />
-                </ScatterChart>
-              ) : chartType === 'bubble' ? (
-                <ScatterChart
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis 
-                    dataKey="x" 
-                    type="number"
-                    name="Index"
-                    tickFormatter={(value) => {
-                      const date = new Date(selectedData.data[value]?.date || "");
-                      return date instanceof Date && !isNaN(date.getTime()) ? 
-                        `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}` : value;
-                    }}
-                  />
-                  <YAxis 
-                    dataKey="y"
-                    name="Value"
-                    domain={[
-                      (dataMin: number) => Math.floor(dataMin * 0.9),
-                      (dataMax: number) => Math.ceil(dataMax * 1.1)
-                    ]}
-                    tickFormatter={(value) => value.toFixed(1)}
-                  />
-                  <ZAxis 
-                    dataKey="z" 
-                    range={[60, 400]} 
-                    name="Size" 
-                  />
-                  <Tooltip 
-                    formatter={(value: number, name: string) => {
-                      if (name === "Size") return [`${value}`, "Size"];
-                      return [`${value} ${selectedMetricInfo?.unit || ''}`, selectedData.metricName];
-                    }}
-                    cursor={{ strokeDasharray: '3 3' }}
-                  />
-                  <Scatter 
-                    name={selectedData.metricName} 
-                    data={prepareBubbleData(selectedData.data)} 
-                    fill={getLineColor(selectedMetric)}
-                  />
-                </ScatterChart>
-              ) : (
-                <ComposedChart
-                  data={selectedData.data}
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                  <XAxis 
-                    dataKey="date" 
-                    tickFormatter={(value) => {
-                      const date = new Date(value);
-                      return `${date.getMonth() + 1}/${date.getFullYear().toString().slice(2)}`;
-                    }}
-                  />
-                  <YAxis
-                    domain={[
-                      (dataMin: number) => Math.floor(dataMin * 0.9),
-                      (dataMax: number) => Math.ceil(dataMax * 1.1)
-                    ]}
-                    tickFormatter={(value) => value.toFixed(1)}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => [
-                      `${value} ${selectedMetricInfo?.unit || ''}`,
-                      selectedData.metricName
-                    ]}
-                    labelFormatter={(label) => {
-                      const date = new Date(label);
-                      return `${date.toLocaleString('default', { month: 'long' })} ${date.getFullYear()}`;
-                    }}
-                  />
-                  <Legend />
-                  <Bar dataKey="value" fill={COLORS[1]} name="Monthly Value" barSize={20} />
-                  <Line type="monotone" dataKey="value" stroke={COLORS[0]} name="Trend" />
-                </ComposedChart>
-              )}
+              {renderChart()}
             </ResponsiveContainer>
           </div>
         )}

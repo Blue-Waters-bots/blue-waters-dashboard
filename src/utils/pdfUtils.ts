@@ -16,11 +16,11 @@ interface jsPDFWithAutoTable extends jsPDF {
       getHeight: () => number;
     };
     getNumberOfPages: () => number;
+    events: any;
+    scaleFactor: number;
+    pages: any[];
+    getEncryptor: (objectId: number) => (data: string) => string;
   };
-  events: any;
-  scaleFactor: number;
-  pages: any[];
-  getEncryptor: (objectId: number) => (data: string) => string;
 }
 
 // Using RGB tuple type for colors
@@ -41,8 +41,13 @@ export const getScoreColor = (score: number): RGBColor => {
   return [239, 68, 68]; // danger
 };
 
+// Helper function to convert RGB tuple to color array for jspdf-autotable
+export const convertToTableColor = (color: RGBColor): number[] => {
+  return color;
+};
+
 // Updated helper function to get status color for cells
-export const getStatusColorForCell = (data: any) => {
+export const getStatusColorForCell = (data: any): number[] => {
   // Handle both cell objects and direct values
   const status = typeof data === 'object' && data?.raw 
     ? data.raw.toString().toUpperCase() 
@@ -50,11 +55,11 @@ export const getStatusColorForCell = (data: any) => {
       ? data.toUpperCase()
       : '';
   
-  return getStatusColor(status);
+  return convertToTableColor(getStatusColor(status));
 };
 
 // Updated helper function to get score color for cells
-export const getScoreColorForCell = (data: any, row: any) => {
+export const getScoreColorForCell = (data: any, row: any): number[] => {
   // Handle score from cell or row
   let score = 0;
   
@@ -71,7 +76,7 @@ export const getScoreColorForCell = (data: any, row: any) => {
     score = typeof data.raw === 'number' ? data.raw : parseFloat(data.raw?.toString() || '0');
   }
   
-  return getScoreColor(score);
+  return convertToTableColor(getScoreColor(score));
 };
 
 // Helper function for creating PDF footer

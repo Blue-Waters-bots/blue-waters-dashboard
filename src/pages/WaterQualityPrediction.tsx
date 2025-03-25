@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import QualityPredictor from "@/components/QualityPredictor";
@@ -13,7 +14,8 @@ import {
   getScoreColorForCell,
   addPdfFooter, 
   createMetricsTableData,
-  castDocToPDFWithAutoTable 
+  castDocToPDFWithAutoTable,
+  convertToTableColor
 } from "@/utils/pdfUtils";
 
 const WaterQualityPrediction = () => {
@@ -89,7 +91,7 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         0: { 
           fontStyle: 'bold',
-          fillColor: getScoreColor(prediction.score),
+          fillColor: function(cell, row) { return getScoreColorForCell(cell, row) },
           textColor: [255, 255, 255]
         },
         1: {
@@ -164,7 +166,7 @@ const WaterQualityPrediction = () => {
           fontStyle: 'bold',
           fillColor: function(cell, row) {
             const score = parseFloat(row.cells?.[1]?.raw?.toString() || "0");
-            return getScoreColor(score);
+            return convertToTableColor(getScoreColor(score));
           },
           textColor: [255, 255, 255] // White text for visibility
         }
@@ -194,7 +196,7 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: getStatusColorForCell,
+          fillColor: function(cell) { return getStatusColorForCell(cell) },
           textColor: [255, 255, 255] // White text for visibility
         }
       },

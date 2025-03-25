@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
@@ -92,7 +91,7 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: getStatusColorForCell,
+          fillColor: function(cell) { return getStatusColorForCell(cell) },
           textColor: [255, 255, 255] // White text for visibility
         }
       },
@@ -112,7 +111,6 @@ const Index = () => {
     });
   };
 
-  // Calculate overall water quality status
   const getOverallStatus = () => {
     const metrics = selectedSource.metrics || [];
     const dangerCount = metrics.filter(m => m.status === "danger").length;
@@ -133,7 +131,6 @@ const Index = () => {
       <div className="flex-1 overflow-y-auto pb-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
-            {/* Header Section with Stats */}
             <div className="glass-panel rounded-xl p-6 shadow-lg">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -153,7 +150,6 @@ const Index = () => {
                 </button>
               </div>
               
-              {/* Quick Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <div className="bg-white/80 rounded-lg p-4 shadow-sm border border-gray-100">
                   <div className="flex items-center gap-3">
@@ -219,8 +215,6 @@ const Index = () => {
             </div>
             
             <QualityMetrics metrics={selectedSource.metrics} />
-            
-            {/* Removed the HealthRisks component from here */}
           </div>
         </div>
       </div>
@@ -229,4 +223,3 @@ const Index = () => {
 };
 
 export default Index;
-
