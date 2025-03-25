@@ -135,14 +135,7 @@ const HistoricalTrends = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
             <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-semibold text-gray-800 mb-2">Historical Trends</h1>
-                <p className="text-muted-foreground max-w-3xl">
-                  Analyze historical water quality data to identify trends, patterns, and seasonal variations.
-                  Download detailed reports for compliance and record-keeping.
-                </p>
-              </div>
-              
+              <h1 className="text-3xl font-semibold text-gray-800 mb-2">Historical Trends</h1>
               <button
                 onClick={handleDownloadReport}
                 className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
@@ -152,6 +145,11 @@ const HistoricalTrends = () => {
               </button>
             </div>
             
+            <p className="text-muted-foreground max-w-3xl">
+              Analyze historical water quality data to identify trends, patterns, and seasonal variations.
+              Download detailed reports for compliance and record-keeping.
+            </p>
+              
             <WaterSourceSelector 
               sources={waterSources}
               selectedSource={selectedSource}

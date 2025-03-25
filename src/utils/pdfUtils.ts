@@ -16,15 +16,14 @@ interface jsPDFWithAutoTable extends jsPDF {
       getHeight: () => number;
     };
     getNumberOfPages: () => number;
-    // Add other internal properties to match jsPDF's internal interface
-    events: any;
-    scaleFactor: number;
-    pages: any[];
-    getEncryptor: (objectId: number) => (data: string) => string;
   };
+  events: any;
+  scaleFactor: number;
+  pages: any[];
+  getEncryptor: (objectId: number) => (data: string) => string;
 }
 
-// Using RGB tuple type for colors instead of the Color type from jspdf-autotable
+// Using RGB tuple type for colors
 export type RGBColor = [number, number, number];
 
 // Fixed color getter functions that return RGBColor
@@ -42,19 +41,36 @@ export const getScoreColor = (score: number): RGBColor => {
   return [239, 68, 68]; // danger
 };
 
-// Helper function to get status color for cells - returns a function that autotable can use
-export const getStatusColorForCell = (cell: CellInput) => {
-  const status = cell.raw?.toString() || '';
+// Updated helper function to get status color for cells
+export const getStatusColorForCell = (data: any) => {
+  // Handle both cell objects and direct values
+  const status = typeof data === 'object' && data?.raw 
+    ? data.raw.toString().toUpperCase() 
+    : typeof data === 'string'
+      ? data.toUpperCase()
+      : '';
+  
   return getStatusColor(status);
 };
 
-// Helper function to get score color for cells - returns a function that autotable can use
-export const getScoreColorForCell = (cell: CellInput, row: RowInput) => {
-  const score = typeof row.cells?.[1]?.raw === 'string' 
-    ? parseFloat(row.cells[1].raw) 
-    : typeof cell.raw === 'number' 
-      ? cell.raw 
-      : 0;
+// Updated helper function to get score color for cells
+export const getScoreColorForCell = (data: any, row: any) => {
+  // Handle score from cell or row
+  let score = 0;
+  
+  if (row && typeof row === 'object') {
+    // Try to get score from row.cells[1]
+    if (row.cells && Array.isArray(row.cells) && row.cells[1]) {
+      const rawValue = row.cells[1].raw;
+      score = typeof rawValue === 'number' ? rawValue : parseFloat(rawValue?.toString() || '0');
+    }
+  }
+  
+  // If we couldn't get from row, try from cell directly
+  if (score === 0 && typeof data === 'object' && data?.raw !== undefined) {
+    score = typeof data.raw === 'number' ? data.raw : parseFloat(data.raw?.toString() || '0');
+  }
+  
   return getScoreColor(score);
 };
 

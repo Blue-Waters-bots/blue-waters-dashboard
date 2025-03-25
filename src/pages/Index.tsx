@@ -1,8 +1,8 @@
+
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
 import QualityMetrics from "@/components/QualityMetrics";
-import HealthRisks from "@/components/HealthRisks";
 import MapView from "@/components/MapView";
 import { waterSources } from "@/data/waterQualityData";
 import { FileText, Droplet, MapPin } from "lucide-react";
@@ -13,8 +13,7 @@ import {
   getStatusColorForCell, 
   addPdfFooter, 
   createMetricsTableData,
-  castDocToPDFWithAutoTable,
-  getStatusColor
+  castDocToPDFWithAutoTable
 } from "@/utils/pdfUtils";
 
 const Index = () => {
@@ -99,48 +98,6 @@ const Index = () => {
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
-    
-    // Cast doc to jsPDFWithAutoTable
-    const docWithAutoTable = castDocToPDFWithAutoTable(doc);
-    
-    // Add health risks section if any
-    if (selectedSource.diseases && selectedSource.diseases.length > 0) {
-      const currentY = docWithAutoTable.lastAutoTable.finalY + 15;
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("Potential Health Risks", 14, currentY);
-      
-      const diseasesBody = selectedSource.diseases.map(disease => [
-        disease.name,
-        disease.description,
-        disease.riskLevel
-      ]);
-      
-      autoTable(doc, {
-        startY: currentY + 4,
-        head: [['Health Risk', 'Description', 'Risk Level']],
-        body: diseasesBody,
-        headStyles: { 
-          fillColor: [41, 128, 185],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold' 
-        },
-        bodyStyles: { fontSize: 10 },
-        columnStyles: {
-          2: { 
-            fontStyle: 'bold',
-            fillColor: function(cell) {
-              const risk = cell.raw?.toString().toLowerCase() || '';
-              if (risk === 'low') return [46, 204, 113];
-              if (risk === 'medium') return [241, 196, 15];
-              return [231, 76, 60];
-            },
-            textColor: [255, 255, 255] // White text for visibility
-          }
-        },
-        alternateRowStyles: { fillColor: [240, 240, 240] }
-      });
-    }
     
     // Add footer
     addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Confidential Report');
@@ -263,7 +220,7 @@ const Index = () => {
             
             <QualityMetrics metrics={selectedSource.metrics} />
             
-            <HealthRisks diseases={selectedSource.diseases} />
+            {/* Removed the HealthRisks component from here */}
           </div>
         </div>
       </div>
