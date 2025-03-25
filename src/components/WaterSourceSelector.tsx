@@ -16,7 +16,7 @@ const WaterSourceSelector = ({
   onSelectSource,
 }: WaterSourceSelectorProps) => {
   return (
-    <div className="w-full mb-8">
+    <div className="w-full glass-panel p-6 rounded-xl shadow-md">
       <h2 className="text-lg font-medium mb-4">Water Sources</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {sources.map((source) => {
@@ -41,7 +41,7 @@ const WaterSourceSelector = ({
               key={source.id}
               onClick={() => onSelectSource(source)}
               className={cn(
-                "glass-panel rounded-lg p-4 cursor-pointer transition-all duration-300 hover:shadow-md",
+                "bg-white/80 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:shadow-md",
                 selectedSource.id === source.id 
                   ? "ring-2 ring-water-blue ring-opacity-80" 
                   : "hover:ring-1 hover:ring-water-blue hover:ring-opacity-50"

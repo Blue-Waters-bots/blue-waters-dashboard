@@ -217,17 +217,17 @@ const Index = () => {
             {/* Alert Banner */}
             <AlertBanner />
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <WaterSourceSelector 
-                sources={waterSources}
-                selectedSource={selectedSource}
-                onSelectSource={setSelectedSource}
-              />
-              
-              <div className="glass-panel p-6 rounded-xl shadow-md">
-                <h2 className="text-lg font-medium mb-4">Location Map</h2>
-                <MapView source={selectedSource} />
-              </div>
+            {/* Water Sources - Now as a full-width section */}
+            <WaterSourceSelector 
+              sources={waterSources}
+              selectedSource={selectedSource}
+              onSelectSource={setSelectedSource}
+            />
+            
+            {/* Map View - Now placed below the water sources */}
+            <div className="glass-panel p-6 rounded-xl shadow-md">
+              <h2 className="text-lg font-medium mb-4">Location Map</h2>
+              <MapView source={selectedSource} />
             </div>
             
             <QualityMetrics metrics={selectedSource.metrics} />

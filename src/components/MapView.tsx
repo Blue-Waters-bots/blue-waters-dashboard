@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -191,7 +190,7 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
   };
 
   return (
-    <div className="w-full h-64 rounded-lg overflow-hidden shadow-sm border border-gray-100 relative">
+    <div className="w-full h-80 rounded-lg overflow-hidden shadow-sm border border-gray-100 relative">
       {showTokenInput ? (
         <div className="absolute inset-0 z-10 bg-white p-4 flex flex-col justify-center">
           <h3 className="text-sm font-medium mb-2">Mapbox Token Required</h3>
