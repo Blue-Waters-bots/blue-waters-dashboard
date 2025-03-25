@@ -91,7 +91,9 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         0: { 
           fontStyle: 'bold',
-          fillColor: function(cell, row) { return getScoreColorForCell(cell, row) },
+          fillColor: function(cell, row) { 
+            return getScoreColorForCell(cell, row);
+          },
           textColor: [255, 255, 255]
         },
         1: {
@@ -196,7 +198,9 @@ const WaterQualityPrediction = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) { return getStatusColorForCell(cell) },
+          fillColor: function(cell) { 
+            return getStatusColorForCell(cell);
+          },
           textColor: [255, 255, 255] // White text for visibility
         }
       },

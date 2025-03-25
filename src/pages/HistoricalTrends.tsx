@@ -65,7 +65,9 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) { return getStatusColorForCell(cell) },
+          fillColor: function(cell) { 
+            return getStatusColorForCell(cell);
+          },
           textColor: [255, 255, 255] // White text for good contrast
         }
       },

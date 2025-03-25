@@ -146,7 +146,9 @@ const HistoricalData = ({ historicalData, metrics }: HistoricalDataProps) => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) { return getStatusColorForCell(cell) },
+          fillColor: function(cell) { 
+            return getStatusColorForCell(cell);
+          },
           textColor: [255, 255, 255] // White text for status column
         }
       },

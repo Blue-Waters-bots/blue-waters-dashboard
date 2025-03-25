@@ -26,6 +26,9 @@ interface jsPDFWithAutoTable extends jsPDF {
 // Using RGB tuple type for colors
 export type RGBColor = [number, number, number];
 
+// Define styled cells type for jspdf-autotable
+export type CellStyleFunction = (cell: any, row?: any) => RGBColor;
+
 // Fixed color getter functions that return RGBColor
 export const getStatusColor = (status: string): RGBColor => {
   if (status === 'SAFE') return [46, 204, 113]; // Brighter green

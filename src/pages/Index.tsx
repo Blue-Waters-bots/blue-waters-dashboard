@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
@@ -91,7 +92,9 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) { return getStatusColorForCell(cell) },
+          fillColor: function(cell) {
+            return getStatusColorForCell(cell);
+          },
           textColor: [255, 255, 255] // White text for visibility
         }
       },
