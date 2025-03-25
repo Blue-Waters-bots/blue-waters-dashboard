@@ -32,14 +32,21 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
   const [customToken, setCustomToken] = useState('');
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [isMapInitialized, setIsMapInitialized] = useState(false);
 
   // Function to initialize or reinitialize the map
   const initializeMap = () => {
     if (!mapContainer.current) return;
     
     // Clear any existing map
-    if (map.current) {
-      map.current.remove();
+    if (map.current && isMapInitialized) {
+      try {
+        marker.current?.remove();
+        marker.current = null;
+        map.current.remove();
+      } catch (error) {
+        console.error('Error removing map:', error);
+      }
       map.current = null;
     }
     
@@ -59,6 +66,12 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
         zoom: 10,
       });
 
+      // Set flag when map is fully loaded
+      map.current.on('load', () => {
+        setIsMapInitialized(true);
+        addMarker(coordinates);
+      });
+
       // Add navigation controls
       map.current.addControl(
         new mapboxgl.NavigationControl(),
@@ -66,11 +79,11 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
       );
       
       // Add error handling
-      map.current.on('error', (e) => {
+      map.current.on('error', (e: { error: { message: string; statusCode?: number } }) => {
         console.error('Mapbox error:', e.error);
         
         // Check if it's an authorization error
-        if (e.error.status === 401) {
+        if (e.error?.statusCode === 401 || e.error?.message?.includes('access token')) {
           setMapError('Invalid Mapbox access token. Please provide your own token.');
           setShowTokenInput(true);
         } else {
@@ -81,12 +94,6 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
           });
         }
       });
-      
-      // When map loads, add marker
-      map.current.on('load', () => {
-        addMarker(coordinates);
-      });
-      
     } catch (error) {
       console.error('Error initializing map:', error);
       setMapError('Could not initialize the map. Please check your internet connection.');
@@ -95,12 +102,13 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
   
   // Function to add a marker to the map
   const addMarker = (coordinates: [number, number]) => {
-    if (!map.current) return;
+    if (!map.current || !isMapInitialized) return;
     
     try {
       // Remove existing marker if it exists
       if (marker.current) {
         marker.current.remove();
+        marker.current = null;
       }
       
       // Determine marker color based on metrics status
@@ -140,19 +148,29 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
     
     return () => {
       // Cleanup map on unmount
-      if (map.current) {
-        map.current.remove();
+      if (map.current && isMapInitialized) {
+        try {
+          if (marker.current) {
+            marker.current.remove();
+            marker.current = null;
+          }
+          map.current.remove();
+          map.current = null;
+          setIsMapInitialized(false);
+        } catch (error) {
+          console.error('Error cleaning up map:', error);
+        }
       }
     };
   }, [mapboxToken]);
 
   // Update marker when source changes
   useEffect(() => {
-    if (!map.current || !map.current.loaded()) return;
+    if (!map.current || !isMapInitialized) return;
     
     const coordinates = locationCoordinates[source.name] || [25.9, -24.6];
     addMarker(coordinates);
-  }, [source]);
+  }, [source, isMapInitialized]);
 
   // Handle token update
   const handleUpdateToken = () => {
@@ -209,7 +227,7 @@ const MapView: React.FC<MapViewProps> = ({ source }) => {
         </div>
       )}
       
-      {!map.current && !mapError && (
+      {!isMapInitialized && !mapError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
           <p className="text-gray-500">Loading map...</p>
         </div>
