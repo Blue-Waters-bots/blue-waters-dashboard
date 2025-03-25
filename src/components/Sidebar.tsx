@@ -1,7 +1,10 @@
+
 import { useState } from "react";
 import { MenuIcon, Mail, Phone, Globe, X, LayoutDashboard, FlaskConical, ShieldAlert, ChartLine } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link, useLocation } from "react-router-dom";
+import NotificationsIcon from "./NotificationsIcon";
+import { useAlerts } from "@/contexts/AlertContext";
 
 interface SidebarProps {
   className?: string;
@@ -9,7 +12,12 @@ interface SidebarProps {
 
 const Sidebar = ({ className }: SidebarProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showAlertPanel, setShowAlertPanel] = useState(false);
   const location = useLocation();
+  const { alerts } = useAlerts();
+  
+  // Count active alerts
+  const activeAlertsCount = alerts.filter(alert => !alert.dismissed).length;
 
   const navigationItems = [
     { 
@@ -111,6 +119,17 @@ const Sidebar = ({ className }: SidebarProps) => {
               );
             })}
           </nav>
+        </div>
+        
+        {/* Notifications Icon */}
+        <div className={cn(
+          "px-4 py-3 border-t border-white/20",
+          isCollapsed ? "flex justify-center" : "flex justify-start"
+        )}>
+          <NotificationsIcon 
+            className="h-6 w-6" 
+            onClick={() => activeAlertsCount > 0 && setShowAlertPanel(!showAlertPanel)}
+          />
         </div>
         
         {/* Sidebar Footer with Contact Info */}

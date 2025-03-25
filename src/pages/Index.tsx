@@ -15,7 +15,8 @@ import {
   getStatusColorForCell, 
   addPdfFooter, 
   createMetricsTableData,
-  castDocToPDFWithAutoTable
+  castDocToPDFWithAutoTable,
+  CellStyleFunction
 } from "@/utils/pdfUtils";
 
 const Index = () => {
@@ -87,6 +88,9 @@ const Index = () => {
     // Create table data for current metrics
     const metricsBody = createMetricsTableData(selectedSource.metrics);
     
+    // Define the fillColor function with the correct type
+    const fillColorFn: CellStyleFunction = (cell) => getStatusColorForCell(cell);
+    
     autoTable(doc, {
       startY: 94,
       head: [['Metric', 'Current Value', 'Safe Range', 'Status']],
@@ -100,9 +104,7 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) { 
-            return getStatusColorForCell(cell);
-          },
+          fillColor: fillColorFn,
           textColor: [255, 255, 255] // White text for visibility
         }
       },

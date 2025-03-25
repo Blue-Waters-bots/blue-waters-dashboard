@@ -1,9 +1,10 @@
 
 import React, { useState } from "react";
-import { Bell, AlertTriangle, AlertCircle, X, ChevronDown, ChevronRight } from "lucide-react";
+import { AlertTriangle, AlertCircle, X, ChevronDown, ChevronRight } from "lucide-react";
 import { Alert, AlertLevel, useAlerts } from "@/contexts/AlertContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import NotificationsIcon from "./NotificationsIcon";
 
 export const AlertBanner = () => {
   const { alerts, dismissAlert, dismissAllAlerts } = useAlerts();
@@ -27,7 +28,7 @@ export const AlertBanner = () => {
       case "warning":
         return <AlertTriangle className="h-5 w-5" />;
       case "info":
-        return <Bell className="h-5 w-5" />;
+        return <NotificationsIcon />;
     }
   };
 
@@ -75,7 +76,7 @@ export const AlertBanner = () => {
             ) : warningCount > 0 ? (
               <AlertTriangle className="h-5 w-5 text-water-warning" />
             ) : (
-              <Bell className="h-5 w-5 text-water-blue" />
+              <NotificationsIcon className="h-5 w-5 text-water-blue" />
             )}
             <span className="font-medium">
               {criticalCount > 0 
