@@ -11,6 +11,7 @@ import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useAlerts } from "@/contexts/AlertContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   getStatusColorForCell, 
   addPdfFooter, 

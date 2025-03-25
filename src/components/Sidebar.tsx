@@ -1,14 +1,14 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { MenuIcon, X } from "lucide-react";
+import { MenuIcon, X, Droplet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SidebarItems from "./SidebarItems";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
