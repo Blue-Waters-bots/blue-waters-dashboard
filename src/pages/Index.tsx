@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
+import PageHeader from "@/components/PageHeader";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
 import QualityMetrics from "@/components/QualityMetrics";
 import MapView from "@/components/MapView";
@@ -106,8 +106,8 @@ const Index = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: getStatusColorForCell as any, // Type assertion to fix type error
-          textColor: [255, 255, 255] // White text for visibility
+          fillColor: getStatusColorForCell as any,
+          textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
@@ -147,23 +147,19 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-6">
             <div className="glass-panel rounded-xl p-6 shadow-card">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h1 className="text-3xl font-semibold text-gradient-blue mb-2">Water Quality Dashboard</h1>
-                  <p className="text-muted-foreground max-w-3xl">
-                    Monitor your water quality metrics in real-time. View current conditions 
-                    and take action to ensure water safety.
-                  </p>
-                </div>
-                
-                <button
-                  onClick={handleDownloadReport}
-                  className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
-                >
-                  <FileText size={16} />
-                  <span>Download Report</span>
-                </button>
-              </div>
+              <PageHeader 
+                title="Water Quality Dashboard"
+                description="Monitor your water quality metrics in real-time. View current conditions and take action to ensure water safety."
+                actions={
+                  <button
+                    onClick={handleDownloadReport}
+                    className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
+                  >
+                    <FileText size={16} />
+                    <span>Download Report</span>
+                  </button>
+                }
+              />
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 <div className="bg-white/80 rounded-lg p-4 shadow-soft border border-gray-100 card-hover">

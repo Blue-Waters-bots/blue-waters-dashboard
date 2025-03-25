@@ -1,6 +1,6 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import Sidebar from "@/components/Sidebar";
+import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
 import jsPDF from 'jspdf';
@@ -107,24 +107,21 @@ const WaterQualityPrediction = () => {
       <Sidebar />
       <div className="flex-1 overflow-y-auto p-8">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-3xl font-semibold text-gradient-blue mb-6">Water Quality Prediction</h1>
-          <div className="mb-8">
-            <p className="text-muted-foreground">
-              Here you can view the predicted water quality metrics based on historical data.
-            </p>
-          </div>
+          <PageHeader
+            title="Water Quality Prediction"
+            description="Here you can view the predicted water quality metrics based on historical data."
+            actions={
+              <Button
+                onClick={generateComparisonPDF}
+                className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
+              >
+                <FileText size={16} />
+                <span>Download Prediction Report</span>
+              </Button>
+            }
+          />
 
-          <div className="mb-8">
-            <Button
-              onClick={generateComparisonPDF}
-              className="flex items-center gap-2 bg-water-blue hover:bg-water-blue/90 text-white px-4 py-2 rounded-md shadow-sm transition-colors"
-            >
-              <FileText size={16} />
-              <span>Download Prediction Report</span>
-            </Button>
-          </div>
-
-          <div className="glass-panel rounded-xl p-6 shadow-card">
+          <div className="glass-panel rounded-xl p-6 shadow-card mt-8">
             <h2 className="text-xl font-medium mb-4">Water Quality Prediction Overview</h2>
             <p className="text-muted-foreground mb-4">
               This panel shows predictions about water quality metrics over time. The system uses 
