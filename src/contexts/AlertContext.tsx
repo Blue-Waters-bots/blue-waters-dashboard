@@ -70,7 +70,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       )
     );
   };
-
+  
   const dismissAllAlerts = () => {
     setAlerts((prev) => prev.map((alert) => ({ ...alert, dismissed: true })));
   };
