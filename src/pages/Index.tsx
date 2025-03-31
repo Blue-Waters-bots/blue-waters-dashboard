@@ -1,12 +1,10 @@
-
+import { FileText, Droplet, MapPin, BarChart4 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
 import QualityMetrics from "@/components/QualityMetrics";
 import MapView from "@/components/MapView";
 import AlertBanner from "@/components/AlertBanner";
-import { waterSources } from "@/data/waterQualityData";
-import { FileText, Droplet, MapPin, BarChart4 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -18,23 +16,43 @@ import {
   castDocToPDFWithAutoTable,
   CellStyleFunction
 } from "@/utils/pdfUtils";
+import { WaterSource } from "@/types/waterQuality";
 
 const Index = () => {
-  const [selectedSource, setSelectedSource] = useState(waterSources[0]);
-  const { checkSourceForAlerts } = useAlerts();
+  const [waterSources, setWaterSources] = useState<WaterSource[]>([]);
+  const [selectedSource, setSelectedSource] = useState<WaterSource | null>(null);
 
-  // Check for alerts whenever the selected source changes
+
+  // Fetch the water sources from the backend
   useEffect(() => {
-    checkSourceForAlerts(selectedSource);
-  }, [selectedSource, checkSourceForAlerts]);
+    const fetchWaterSources = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/water-sources");
+        const data = await response.json();
+        setWaterSources(data); 
+        if (data.length > 0) {
+          setSelectedSource(data[0]); 
+        }
+      } catch (error) {
+        console.error("Failed to fetch water sources:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch water sources.",
+          duration: 3000,
+        });
+      }
+    };
+
+    fetchWaterSources();
+  }, []);
+  
+
 
   const handleDownloadReport = () => {
-    // Create a new PDF document
     const doc = new jsPDF();
     const dateGenerated = new Date().toLocaleString();
     
-    // Add header with logo and title
-    doc.setFillColor(0, 102, 204); // Header background color
+    doc.setFillColor(0, 102, 204); 
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), 40, 'F');
     
     doc.setTextColor(255, 255, 255);
@@ -66,13 +84,12 @@ const Index = () => {
     doc.setFontSize(12);
     doc.text(`Overall Quality Status: `, 14, 78);
     
-    // Set status color
     if (overallStatus === "Good") {
-      doc.setTextColor(46, 204, 113); // Green
+      doc.setTextColor(46, 204, 113); 
     } else if (overallStatus === "Warning") {
-      doc.setTextColor(241, 196, 15); // Yellow
+      doc.setTextColor(241, 196, 15); 
     } else {
-      doc.setTextColor(231, 76, 60); // Red
+      doc.setTextColor(231, 76, 60); 
     }
     
     doc.setFont("helvetica", "bold");
@@ -80,15 +97,12 @@ const Index = () => {
     doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "normal");
     
-    // Add current metrics table
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
     doc.text("Current Water Quality Metrics", 14, 90);
     
-    // Create table data for current metrics
     const metricsBody = createMetricsTableData(selectedSource.metrics);
     
-    // Define the fillColor function with the correct type
     const fillColorFn: CellStyleFunction = (cell) => getStatusColorForCell(cell);
     
     autoTable(doc, {
@@ -105,16 +119,14 @@ const Index = () => {
         3: { 
           fontStyle: 'bold',
           fillColor: fillColorFn,
-          textColor: [255, 255, 255] // White text for visibility
+          textColor: [255, 255, 255]
         }
       },
       alternateRowStyles: { fillColor: [240, 240, 240] }
     });
     
-    // Add footer
     addPdfFooter(castDocToPDFWithAutoTable(doc), 'Water Quality Monitoring System | Confidential Report');
     
-    // Save the PDF
     doc.save(`${selectedSource.name.replace(/\s+/g, '_')}_water_quality_report.pdf`);
     
     toast({
@@ -125,7 +137,7 @@ const Index = () => {
   };
 
   const getOverallStatus = () => {
-    const metrics = selectedSource.metrics || [];
+    const metrics = selectedSource?.metrics || [];
     const dangerCount = metrics.filter(m => m.status === "danger").length;
     const warningCount = metrics.filter(m => m.status === "warning").length;
     const safeCount = metrics.filter(m => m.status === "safe").length;
@@ -183,7 +195,7 @@ const Index = () => {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-sm">Source Type</p>
-                      <p className="text-lg font-semibold">{selectedSource.type}</p>
+                      <p className="text-lg font-semibold">{selectedSource?.type}</p>
                     </div>
                   </div>
                 </div>
@@ -195,7 +207,7 @@ const Index = () => {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-sm">Location</p>
-                      <p className="text-lg font-semibold">{selectedSource.location}</p>
+                      <p className="text-lg font-semibold">{selectedSource?.location}</p>
                     </div>
                   </div>
                 </div>
@@ -207,7 +219,7 @@ const Index = () => {
                     </div>
                     <div>
                       <p className="text-muted-foreground text-sm">Metrics Tracked</p>
-                      <p className="text-lg font-semibold">{selectedSource.metrics.length}</p>
+                      <p className="text-lg font-semibold">{selectedSource?.metrics?.length}</p>
                     </div>
                   </div>
                 </div>
@@ -233,7 +245,7 @@ const Index = () => {
               <MapView source={selectedSource} />
             </div>
             
-            <QualityMetrics metrics={selectedSource.metrics} />
+            <QualityMetrics metrics={selectedSource?.metrics || []} />
           </div>
         </div>
       </div>

@@ -5,8 +5,8 @@ import HistoricalData from "@/components/HistoricalData";
 import { waterSources, historicalData } from "@/data/waterQualityData";
 import WaterSourceSelector from "@/components/WaterSourceSelector";
 import { FileText } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import { jsPDF } from "jspdf";
+import { autoTable } from "jspdf-autotable";
 import { toast } from "@/components/ui/use-toast";
 import { 
   getStatusColorForCell, 
@@ -65,9 +65,7 @@ const HistoricalTrends = () => {
       columnStyles: {
         3: { 
           fontStyle: 'bold',
-          fillColor: function(cell) { 
-            return getStatusColorForCell(cell);
-          },
+          fillColor: getStatusColorForCell(15),
           textColor: [255, 255, 255] // White text for good contrast
         }
       },

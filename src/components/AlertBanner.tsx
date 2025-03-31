@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { AlertTriangle, AlertCircle, X, ChevronDown, ChevronRight } from "lucide-react";
 import { Alert, AlertLevel, useAlerts } from "@/contexts/AlertContext";
@@ -9,8 +8,8 @@ import NotificationsIcon from "./NotificationsIcon";
 export const AlertBanner = () => {
   const { alerts, dismissAlert, dismissAllAlerts } = useAlerts();
   const [expanded, setExpanded] = useState(false);
+  const [selectedAlert, setSelectedAlert] = useState<number | null>(null);
 
-  // Filter out dismissed alerts and get active ones
   const activeAlerts = alerts.filter(alert => !alert.dismissed);
   
   if (activeAlerts.length === 0) {
@@ -119,28 +118,32 @@ export const AlertBanner = () => {
               <div 
                 key={alert.id} 
                 className={cn(
-                  "rounded-md border p-3 flex justify-between items-start",
+                  "rounded-md border p-3 flex flex-col cursor-pointer",
                   getAlertColor(alert.level)
                 )}
+                onClick={() => setSelectedAlert(selectedAlert === alert.id ? null : alert.id)}
               >
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
                     {getAlertIcon(alert.level)}
-                  </div>
-                  <div>
                     <div className="font-medium">{alert.source}</div>
-                    <p className="text-sm">{alert.message}</p>
-                    <div className="text-xs mt-1 opacity-70">{getTimeAgo(alert.timestamp)}</div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => { e.stopPropagation(); dismissAlert(alert.id); }}
+                    className="p-1 h-7 w-7"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => dismissAlert(alert.id)}
-                  className="p-1 h-7 w-7 -mt-1 -mr-1"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                <p className="text-sm mt-1">{alert.message}</p>
+                <div className="text-xs opacity-70">{getTimeAgo(alert.timestamp)}</div>
+                {selectedAlert === alert.id && (
+                  <div className="mt-2 p-2 bg-gray-100 rounded-md text-sm">
+                    <strong>Details:</strong> {alert.details || "No additional details available."}
+                  </div>
+                )}
               </div>
             ))}
           </div>
