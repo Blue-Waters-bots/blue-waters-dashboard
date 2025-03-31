@@ -14,6 +14,10 @@ The **Blue Waters Dashboard** provides real-time monitoring of water quality met
 
 ---
 
+## Demo Video
+[![Watch the demo](https://img.youtube.com/vi/uuks3hbdOK0/0.jpg)](https://youtu.be/uuks3hbdOK0)
+
+
 ## Installation
 
 1. Clone the repo:
